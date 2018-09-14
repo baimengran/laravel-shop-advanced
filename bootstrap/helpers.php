@@ -6,6 +6,10 @@
  * @version $Id$
  */
 
-function root_class(){
-	return 'ok';
+/**
+ * 当前请求的路由名称转换为CSS
+ * @return [type] [description]
+ */
+function route_class(){
+	return str_replace('.','-',Route::currentRouteName());
 }
