@@ -1,4 +1,3 @@
-
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
@@ -16,6 +15,12 @@ window.Vue = require('vue');
  */
 
 Vue.component('example', require('./components/Example.vue'));
+
+//省市区显示vue组件
+require('./components/SelectDistrict');
+//省市区change事件vue组件
+require('./components/UserAddresesCreateAndEdit');
+
 
 const app = new Vue({
     el: '#app'
