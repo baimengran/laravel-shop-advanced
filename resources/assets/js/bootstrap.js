@@ -51,3 +51,9 @@ if (token) {
 //     broadcaster: 'pusher',
 //     key: 'your-pusher-key'
 // });
+/**
+ *
+ *引入sweetalert库
+ * sweetalert用来展示比较美观的弹出提示框
+ * */
+require('sweetalert');
