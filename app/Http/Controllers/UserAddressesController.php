@@ -41,14 +41,22 @@ class UserAddressesController extends Controller
 
     public function edit(UserAddress $user_address)
     {
-        $this->authorize('update', $user_address);
+        try {
+            $this->authorize('update', $user_address);
+        } catch (\Exception $e) {
+            throw new InvalidRequestException('您无权进行此次操作');
+        }
         return view('user_Addresses.create_and_edit', ['address' => $user_address]);
     }
 
 
     public function update(UserAddress $user_address, UserAddressRequest $request)
     {
-        $this->authorize('update', $user_address);
+        try {
+            $this->authorize('update', $user_address);
+        } catch (\Exception $e) {
+            throw new InvalidRequestException('您无权进行此次错作');
+        }
         $user_address->update($request->only([
             'province',
             'city',
@@ -63,7 +71,11 @@ class UserAddressesController extends Controller
 
     public function destroy(UserAddress $user_address)
     {
-        $this->authorize('delete', $user_address);
+        try {
+            $this->authorize('delete', $user_address);
+        } catch (\Exception $e) {
+            throw new InvalidRequestException('您无权进行此次操作');
+        }
         try {
             $user_address->delete();
             return [];
