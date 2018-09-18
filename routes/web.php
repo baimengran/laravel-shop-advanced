@@ -16,8 +16,13 @@
 // });
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', 'PagesController@root')->name('root');
+//Route::get('/', 'PagesController@root')->name('root');
+//进入网站跳转到商品列表页面
+Route::redirect('/', '/products')->name('root');
+Route::get('products', 'ProductsController@index')->name('products.index');
+
 Auth::routes();
+
 Route::group(['middleware' => 'auth'], function () {
     //显示邮件验证页面
     Route::get('/email_verify_notice', 'PagesController@emailVerifyNotice')->name('email_verify_notice');
@@ -37,9 +42,9 @@ Route::group(['middleware' => 'auth'], function () {
         //收获地址修改显示
         Route::get('user_addresses/{user_address}', 'UserAddressesController@edit')->name('user_addresses.edit');
         //收获地址修改动作
-        Route::put('user_address/{user_address}','UserAddressesController@update')->name('user_addresses.update');
+        Route::put('user_address/{user_address}', 'UserAddressesController@update')->name('user_addresses.update');
         //删除收货地址
-        Route::delete('user_addresses/{user_address}','UserAddressesController@destroy')->name('user_addresses.destroy');
+        Route::delete('user_addresses/{user_address}', 'UserAddressesController@destroy')->name('user_addresses.destroy');
         //Route::delete('user_addresses/{user_address}', 'UserAddressesController@destroy')->name('user_addresses.destroy');
 
     });

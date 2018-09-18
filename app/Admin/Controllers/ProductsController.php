@@ -152,7 +152,7 @@ class ProductsController extends Controller
         $form->text('title', '商品名称')->rules('required');
         //$form->textarea('description', 'Description');
         //创建选择图片框,生成MD5随机文件名，并修改上传目录
-        $form->image('image', '封面图片')->uniqueName()->move('public/upload/products');
+        $form->image('image', '封面图片')->uniqueName()->move('products');
         //创建选择图片框
         // $form->image('image', '封面图片')->rules('required|image');
         //创建一个富文本编辑器,默认laravel->admin禁用了editor表单组件，可在app/Admin/bootstrap。php内将‘editor’删除
