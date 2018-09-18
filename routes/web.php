@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Route;
 //进入网站跳转到商品列表页面
 Route::redirect('/', '/products')->name('root');
 Route::get('products', 'ProductsController@index')->name('products.index');
+//商品详情页面
+Route::get('products/{product}', 'ProductsController@show')->name('products.show');
+
 
 Auth::routes();
 
