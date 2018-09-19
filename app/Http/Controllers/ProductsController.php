@@ -8,7 +8,11 @@ use Illuminate\Http\Request;
 
 class ProductsController extends Controller
 {
-    //
+    /**
+     * 商品列表
+     * @param Request $request
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function index(Request $request)
     {
         //创建查询构建器
@@ -45,13 +49,56 @@ class ProductsController extends Controller
         return view('products.index', ['products' => $products, 'filters' => ['search' => $search, 'order' => $order]]);
     }
 
-
+    /**
+     * 商品详情
+     * @param Product $product
+     * @param Request $request
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @throws InvalidRequestException
+     */
     public function show(Product $product, Request $request)
     {
         //判断商品是否已经上架，如果没上架抛出异常
         if (!$product->on_sale) {
             throw new InvalidRequestException('商品未上架');
         }
-        return view('products.show', ['product' => $product]);
+        //用户未登录返回空
+        $favored = false;
+        //用户以登录返回对应用户对象
+        if ($user = $request->user()) {
+            //从当前用户已经收藏的商品中搜索id为当前商品的id
+            //boolval()函数用于把值转换为布尔值
+            $favored = boolval($user->favoriteProducts()->find($product->id));
+        }
+        return view('products.show', ['product' => $product, 'favored' => $favored]);
+    }
+
+    /**
+     * 收藏添加
+     * @param Product $product
+     * @param Request $request
+     * @return array
+     */
+    public function favor(Product $product, Request $request)
+    {
+        $user = $request->user();
+        if ($user->favoriteProducts()->find($product->id)) {
+            return [];
+        }
+        $user->favoriteProducts()->attach($product);
+        return [];
+    }
+
+    /**
+     * 删除收藏
+     * @param Product $product
+     * @param Request $request
+     * @return array
+     */
+    public function disfavor(Product $product, Request $request)
+    {
+        $user = $request->user();
+        $user->favoriteProducts()->detach($product);
+        return [];
     }
 }

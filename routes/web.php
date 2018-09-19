@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 //Route::get('/', 'PagesController@root')->name('root');
 //进入网站跳转到商品列表页面
 Route::redirect('/', '/products')->name('root');
+//商品列表页面
 Route::get('products', 'ProductsController@index')->name('products.index');
 //商品详情页面
 Route::get('products/{product}', 'ProductsController@show')->name('products.show');
@@ -48,8 +49,11 @@ Route::group(['middleware' => 'auth'], function () {
         Route::put('user_address/{user_address}', 'UserAddressesController@update')->name('user_addresses.update');
         //删除收货地址
         Route::delete('user_addresses/{user_address}', 'UserAddressesController@destroy')->name('user_addresses.destroy');
-        //Route::delete('user_addresses/{user_address}', 'UserAddressesController@destroy')->name('user_addresses.destroy');
 
+        //商品收藏添加
+        Route::post('products/{product}/favorite', 'ProductsController@favor')->name('products.favor');
+        //商品收藏删除
+        Route::delete('products/{product}/favorite','productsController@disfavor')->name('products.disfavor');
     });
 
 });
