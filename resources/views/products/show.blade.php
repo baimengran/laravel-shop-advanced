@@ -50,10 +50,12 @@
                     <div class="product-detail">
                         <ul class="nav nav-tabs" role="tablist">
                             <li role="presentation" class="active">
-                                <a href="#product-detail-tab" aria-controls="product-detail-tab" role="tab" data-toggle="tab">商品详情</a>
+                                <a href="#product-detail-tab" aria-controls="product-detail-tab" role="tab"
+                                   data-toggle="tab">商品详情</a>
                             </li>
                             <li role="presentation">
-                                <a href="#product-reviews-tab" aria-controls="product-reviews-tab" role="tab" data-toggle="tab">用户评价</a>
+                                <a href="#product-reviews-tab" aria-controls="product-reviews-tab" role="tab"
+                                   data-toggle="tab">用户评价</a>
                             </li>
                         </ul>
                         <div class="tab-content">
@@ -115,43 +117,55 @@
             });
 
             //加入购物车按钮点击事件
-            $('.btn-add-to-cart').click(function(){
+            $('.btn-add-to-cart').click(function () {
                 //请求加入购物车接口
                 // var sku_id = $('label.active input[name=skus]').val();
                 // alert(sku_id);
-                axios.post('{{route('cart.add')}}',{
-                    sku_id:$('label.active input[name=skus]').val(),
-                    amount:$('.cart_amount input').val(),
+                axios.post('{{route('cart.add')}}', {
+                    sku_id: $('label.active input[name=skus]').val(),
+                    amount: $('.cart_amount input').val(),
                 })
-                    .then(function(){//请求成功回调函数
-                        swal('加入购物车成功','','success');
-                    },function(error){//请求失败回调函数
-                        if(error.response.status === 401){
+                    .then(function () {//请求成功回调函数
+                        //商品加入购物车后跳转
+                        swal({
+                            title: "加入购物车成功",
+                            icon: "success",
+                            buttons: ['取消', '进入购物车'],
+                            dangerMode: true,
+                        }).then(function (willGo) {
+                            if(!willGo){
+                                return;
+                            }
+                            location.href = '{{route('cart.index')}}';
+                        });
+                    }, function (error) {//请求失败回调函数
+                        if (error.response.status === 401) {
                             //http状态码为401代表用户未登录
-                            swal('请先登录','','error');
-                        }else if(error.response.status === 422){
+                            swal('请先登录', '', 'error');
+                        } else if (error.response.status === 422) {
                             //Laravel 里输入参数校验不通过抛出的异常所对应的 Http 状态码是 422，
                             // 具体错误信息会放在返回结果的 errors 数组里，所以这里我们通过 error.response.data.errors
                             // 来拿到所有的错误信息。最后把所有的错误信息拼接成 Html 代码并弹框告知用户。
                             //http状态吗为422代表用户输入校验失败
-                            var html='<div>';
-                            _.each(error.response.data.errors,function(errors){
-                                _.each(errors,function(error){
-                                    html +=error+'<br>';
+                            var html = '<div>';
+                            //_.each 是 lodash 这个前端库提供的方法，类似 php 里面的 foreach
+                            _.each(error.response.data.errors, function (errors) {
+                                _.each(errors, function (error) {
+                                    html += error + '<br>';
                                 })
                             });
-                            html+='</div>';
+                            html += '</div>';
                             swal({
-                                content:$(html)[0],
-                                icon:'error'
+                                content: $(html)[0],
+                                icon: 'error'
                             });
-                        }else{
+                        } else {
                             //其他情况系统故障
-                            swal('系统错误','','error');
+                            swal('系统错误', '', 'error');
                         }
                     });
-            });
 
+            });
 
 
         });
