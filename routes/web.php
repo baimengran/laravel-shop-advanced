@@ -21,8 +21,6 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', '/products')->name('root');
 //商品列表页面
 Route::get('products', 'ProductsController@index')->name('products.index');
-//商品详情页面
-Route::get('products/{product}', 'ProductsController@show')->name('products.show');
 
 
 Auth::routes();
@@ -53,8 +51,12 @@ Route::group(['middleware' => 'auth'], function () {
         //商品收藏添加
         Route::post('products/{product}/favorite', 'ProductsController@favor')->name('products.favor');
         //商品收藏删除
-        Route::delete('products/{product}/favorite','productsController@disfavor')->name('products.disfavor');
-    });
+        Route::delete('products/{product}/favorite', 'productsController@disfavor')->name('products.disfavor');
+        //商品收藏列表
+        Route::get('products/favorites', 'productsController@favorites')->name('products.favorites');
 
+    });
+    //商品详情页面
+    Route::get('products/{product}', 'ProductsController@show')->name('products.show');
 });
 
