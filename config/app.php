@@ -2,6 +2,9 @@
 
 return [
 
+    //订单关闭时间（需要修改.evn文件队列驱动---QUEUE_DRIVER=redis,并引入predis/predis包）
+    //composer require predis/predis
+    'order_ttl' => 1800,
     /*
     |--------------------------------------------------------------------------
     | Application faker_locale
@@ -13,7 +16,7 @@ return [
     |
     */
 
-    'faker_locale'=>'zh_Cn',
+    'faker_locale' => 'zh_Cn',
 
     /*
     |--------------------------------------------------------------------------
@@ -78,7 +81,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Shanghai',
 
     /*
     |--------------------------------------------------------------------------
