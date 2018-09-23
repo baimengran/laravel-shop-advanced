@@ -81,4 +81,18 @@ class OrdersController extends Controller
         return $order;
 
     }
+
+
+    public function index(Request $request)
+    {
+        $orders = Order::query()
+            //使用with预加载避免N+1
+            ->with(['items.product', 'items.productSku'])
+            ->where('user_id', $request->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate();
+
+        return view('orders.index', ['orders' => $orders]);
+
+    }
 }
