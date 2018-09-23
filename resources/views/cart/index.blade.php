@@ -1,10 +1,9 @@
-
 {{--/**--}}
- {{--* Created by PhpStorm.--}}
- {{--* User: Administrator--}}
- {{--* Date: 2018/9/19--}}
- {{--* Time: 23:12--}}
- {{--*/--}}
+{{--* Created by PhpStorm.--}}
+{{--* User: Administrator--}}
+{{--* Date: 2018/9/19--}}
+{{--* Time: 23:12--}}
+{{--*/--}}
 @extends('layouts.app')
 
 @section('title', '购物车')
@@ -34,13 +33,15 @@
                                 </td>
                                 <td class="product_info">
                                     <div class="preview">
-                                        <a target="_blank" href="{{ route('products.show', [$item->productSku->product_id]) }}">
+                                        <a target="_blank"
+                                           href="{{ route('products.show', [$item->productSku->product_id]) }}">
                                             <img src="{{ $item->productSku->product->image_url }}">
                                         </a>
                                     </div>
                                     <div @if(!$item->productSku->product->on_sale) class="not_on_sale" @endif>
                                         <span class="product_title">
-                                            <a target="_blank" href="{{ route('products.show', [$item->productSku->product_id]) }}">{{ $item->productSku->product->title }}</a>
+                                            <a target="_blank"
+                                               href="{{ route('products.show', [$item->productSku->product_id]) }}">{{ $item->productSku->product->title }}</a>
                                         </span>
                                         <span class="sku_title">{{ $item->productSku->title }}</span>
                                         @if(!$item->productSku->product->on_sale)
@@ -61,6 +62,33 @@
                         @endforeach
                         </tbody>
                     </table>
+                    {{--收获地址列表开始--}}
+                    <div>
+                        <form class="form-horizontal" role="form" id="order-form">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3">选择收货地址</label>
+                                <div class="col-sm-9 col-md-7">
+                                    <select class="form-control" name="address">
+                                        @foreach($addresses as $address)
+                                            <option value="{{ $address->id }}">{{ $address->full_address }} {{ $address->contact_name }} {{ $address->contact_phone }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3">备注</label>
+                                <div class="col-sm-9 col-md-7">
+                                    <textarea name="remark" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-3">
+                                    <button type="button" class="btn btn-primary btn-create-order">提交订单</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    {{--收货地址列表结束--}}
                 </div>
             </div>
         </div>
@@ -68,44 +96,101 @@
 @endsection
 
 @section('scriptsAfterJs')
-<script>
-    $(document).ready(function(){
-        //监听移除按钮事件
-        $('.btn-remove').click(function(){
-            //alert(1);
-            //$(this)获取当前点击移除按钮的jquery对象
-            //closest()方法获取匹配选择器的第一个祖先元素（当前点击的移除按钮之上的<tr>标签）
-            //data('id')方法获取设置的data-id属性值（对应的SKU的id）
-            var id = $(this).closest('tr').data('id');
-            swal({
-                title:"确认移除该商品？",
-                icon:"warning",
-                buttons:['取消','确定'],
-                dangerMode:true,
-            }).then(function(willDelete){
-                //用户点击确定按钮，willDelete值=true，否则=false
-                if(!willDelete){
-                    return;
-                }
-                axios.delete('/cart/'+id).then(function(){
-                    location.reload();
+    <script>
+        $(document).ready(function () {
+            //监听移除按钮事件
+            $('.btn-remove').click(function () {
+                //alert(1);
+                //$(this)获取当前点击移除按钮的jquery对象
+                //closest()方法获取匹配选择器的第一个祖先元素（当前点击的移除按钮之上的<tr>标签）
+                //data('id')方法获取设置的data-id属性值（对应的SKU的id）
+                var id = $(this).closest('tr').data('id');
+                swal({
+                    title: "确认移除该商品？",
+                    icon: "warning",
+                    buttons: ['取消', '确定'],
+                    dangerMode: true,
+                }).then(function (willDelete) {
+                    //用户点击确定按钮，willDelete值=true，否则=false
+                    if (!willDelete) {
+                        return;
+                    }
+                    axios.delete('/cart/' + id).then(function () {
+                        location.reload();
+                    })
                 })
-            })
-        });
+            });
 
-        //监听全选/取消全选单选框变更事件
-        $('#select-all').change(function(){
-            //获取单选框选中状态
-            //prop()方法可以知道标签中是否包含某个属性，当单选框被勾选时，对应的标签会新增一个checked属性
-            var checked = $(this).prop('checked');
-            //获取所有name=select并且不带有disabled属性的单选框
-            //对于已经下架的商品，不能被勾选，因此需要加上:not([disabled])条件
-            $('input[name=select][type=checkbox]:not([disabled])').each(function(){
-                //循环将勾选状态设置为与目标单选框一致
-                $(this).prop('checked',checked);
-            })
-        });
+            //监听全选/取消全选单选框变更事件
+            $('#select-all').change(function () {
+                //获取单选框选中状态
+                //prop()方法可以知道标签中是否包含某个属性，当单选框被勾选时，对应的标签会新增一个checked属性
+                var checked = $(this).prop('checked');
+                //获取所有name=select并且不带有disabled属性的单选框
+                //对于已经下架的商品，不能被勾选，因此需要加上:not([disabled])条件
+                $('input[name=select][type=checkbox]:not([disabled])').each(function () {
+                    //循环将勾选状态设置为与目标单选框一致
+                    $(this).prop('checked', checked);
+                })
+            });
 
-    });
-</script>
-    @endsection
+            //监听创建订单按钮的事件
+            $('.btn-create-order').click(function () {
+                //构建请求参数，将用户选择的地址的id和备注内容写入请求参数
+                var req = {
+                    address_id: $('#order-form').find('select[name=address]').val(),
+                    items: [],
+                    remark: $('#order-form').find('textarea[name=remark]').val(),
+                };
+                //遍历table标签内所带有data-id属性的tr标签（每一个购物车中的商品SKU）
+                $('table tr[data-id]').each(function () {
+                    //获取当前行的单选框
+                    var $checkbox = $(this).find('input[name=select][type=checkbox]');
+                    //如果单选框被禁用或没有被选中则跳过
+                    if ($checkbox.prop('disabled') || !$checkbox.prop('checked')) {
+                        return;
+                    }
+                    //获取当前行中数量输入框
+                    var $input = $(this).find('input[name=amount]');
+                    //如果用户将数量设为0或不是一个数字，则跳过
+                    if ($input.val() == 0 || isNaN($input.val())) {
+                        return;
+                    }
+                    //把SKU id 和数量存入请求参数数组中
+                    //javascript push方法可以向数组添加一个或多个元素，并返回新的长度
+                    req.items.push({
+                        sku_id: $(this).data('id'),
+                        amount: $input.val(),
+                    });
+                });
+                axios.post('{{route('orders.store')}}', req)
+                    .then(function (response) {
+                        swal('订单提交成功', '', 'success');
+                    }, function (error) {
+                        if (error.response.status === 422) {
+                            //http状态码为422，代表用户输入校验失败
+                            let html = '<div>';
+                            _.each(error.response.data.errors, function (errors) {
+                                _.each(errors, function (error) {
+                                    html += error + '<br>';
+                                })
+                            });
+                            html += '</div>';
+                            swal({
+                                content: $(html)[0],
+                                icon: 'error',
+                            });
+                        } else if(error.response.status ===419){
+                            //http状态码为419，代表用户未登录，或登录状态以过期
+                            swal('请先登录','','error');
+                        }else {
+                            //其他情况，系统挂了
+                            swal('系统错误', '', 'error');
+                        }
+                    });
+
+            });
+
+        });
+    </script>
+@endsection
