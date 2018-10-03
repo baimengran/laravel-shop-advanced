@@ -389,7 +389,7 @@ body {
   }
   .order-summary {
     width: 50%;
-    font-family: Verdana,Tahoma,Helvetica,Arial;
+    font-family: Verdana, Tahoma, Helvetica, Arial;
     .total-amount {
       font-weight: bolder;
       font-size: 14px;
@@ -400,4 +400,9 @@ body {
       padding-right: 20px;
     }
   }
+  .payment-buttons {
+    margin-top: 10px;
+    padding-right: 10px;
+  }
 }
+
