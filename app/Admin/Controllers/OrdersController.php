@@ -2,6 +2,8 @@
 
 namespace App\Admin\Controllers;
 
+use App\Exceptions\InvalidRequestException;
+use App\Http\Requests\Request;
 use App\Models\Order;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
@@ -31,7 +33,7 @@ class OrdersController extends Controller
     /**
      * Show interface.
      *
-     * @param mixed   $id
+     * @param mixed $id
      * @param Content $content
      * @return Content
      */
@@ -40,13 +42,13 @@ class OrdersController extends Controller
         return $content
             ->header('查看订单')
             //->description('description')
-            ->body(view('admin.orders.show',['order'=>$order]));
+            ->body(view('admin.orders.show', ['order' => $order]));
     }
 
     /**
      * Edit interface.
      *
-     * @param mixed   $id
+     * @param mixed $id
      * @param Content $content
      * @return Content
      */
@@ -82,11 +84,11 @@ class OrdersController extends Controller
         $grid = new Grid(new Order);
 
         //只展示已经支付的订单，并默认按支付时间倒序排列
-        $grid->model()->whereNotNull('paid_at')->orderBy('paid_at','desc');
+        $grid->model()->whereNotNull('paid_at')->orderBy('paid_at', 'desc');
         //$grid->id('Id');
         $grid->no('订单流水号');
         //展示关联关系的字段时，使用column方法
-        $grid->column('user.name','买家');
+        $grid->column('user.name', '买家');
         //$grid->user_id('User id');
         //$grid->address('Address');
         $grid->total_amount('总金额')->sortable();
@@ -94,13 +96,13 @@ class OrdersController extends Controller
         $grid->paid_at('支付时间')->sortable();
         //$grid->payment_method('Payment method');
         //$grid->payment_no('Payment no');
-        $grid->refund_status('退款状态')->display(function($value){
+        $grid->refund_status('退款状态')->display(function ($value) {
             return Order::$refundStatusMap[$value];
         });
         //$grid->refund_no('Refund no');
         //$grid->closed('Closed');
         //$grid->reviewed('Reviewed');
-        $grid->ship_status('物流')->display(function($value){
+        $grid->ship_status('物流')->display(function ($value) {
             return Order::$refundStatusMap[$value];
         });
         //$grid->ship_data('Ship data');
@@ -111,13 +113,13 @@ class OrdersController extends Controller
         //禁用创建按钮，
         $grid->disableCreateButton();
         //禁用删除和编辑按钮
-        $grid->actions(function($actions){
+        $grid->actions(function ($actions) {
             $actions->disableDelete();
             $actions->disableEdit();
         });
         //禁用批量删除按钮
-        $grid->tools(function($tools){
-            $tools->batch(function($batch){
+        $grid->tools(function ($tools) {
+            $tools->batch(function ($batch) {
                 $batch->disableDelete();
             });
         });
@@ -128,7 +130,7 @@ class OrdersController extends Controller
     /**
      * Make a show builder.
      *
-     * @param mixed   $id
+     * @param mixed $id
      * @return Show
      */
     protected function detail($id)
@@ -183,5 +185,36 @@ class OrdersController extends Controller
         $form->textarea('extra', 'Extra');
 
         return $form;
+    }
+
+
+    public function ship(Order $order, Request $request)
+    {
+        //判断当前订单是否以支付
+        if (!$order->paid_at) {
+            throw new InvalidRequestException('该订单未支付');
+        }
+        //判断当前订单发货状态是否为未发货
+        if ($order->ship_status !== Order::SHIP_STATUS_PENDING) {
+            throw new InvalidRequestException('该订单已发货');
+        }
+
+        //laravel5.5之后validate方法可以返回检验过的值
+        $data = $this->validate($request, [
+            'express_company' => ['required'],
+            'express_no' => ['required'],
+        ], [], [
+            'express_company' => '物流公司',
+            'express_no' => '物流单号',
+        ]);
+
+        //将订单发货状态改为以发货，并存入物流信息
+        $order->update([
+            'ship_status' => Order::SHIP_STATUS_DELIVERED,
+            //Order模型的$casts属性中指明了ship_data是一个数组
+            'ship_data' => $data,
+        ]);
+        //返回上一页
+        return redirect()->back();
     }
 }
