@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderPaid;
 use App\Exceptions\InvalidRequestException;
 use App\Models\Order;
 use Carbon\Carbon;
@@ -40,7 +41,7 @@ class PaymentController extends Controller
             return view('pages.error', ['msg', '数据不正确']);
         }
 
-        return view('pages.success',['msg'=>'付款成功']);
+        return view('pages.success', ['msg' => '付款成功']);
     }
 
 
@@ -52,23 +53,34 @@ class PaymentController extends Controller
         //Log::debug('Alipay notify', $data->all());
 
         //$data->out_trade_no拿到订单流水号，并在数据库中查询
-        $order = Order::where('no',$data->out_trade_no)->first();
+        $order = Order::where('no', $data->out_trade_no)->first();
         //判断支付订单是否存在，加强系统健壮性
-        if(!$order){
+        if (!$order) {
             return 'fail';
         }
         //如果订单状态以支付
-        if($order->paid_at){
+        if ($order->paid_at) {
             //返回数据给支付宝
             return app('alipay')->success();
         }
 
         $order->update([
-            'paid_at'=>Carbon::now(),//支付时间
-            'payment_method'=>'alipay',//支付方式
-            'payment_no'=>$data->trade_no,//支付宝订单号
+            'paid_at' => Carbon::now(),//支付时间
+            'payment_method' => 'alipay',//支付方式
+            'payment_no' => $data->trade_no,//支付宝订单号
         ]);
 
+        //支付成功后调用OrderPaid事件分发函数
+        $this->afterPaid($order);
         return app('alipay')->success();
+    }
+
+    /**
+     * 分发事件
+     * @param Order $order
+     */
+    public function afterPaid(Order $order)
+    {
+        event(new OrderPaid($order));
     }
 }
