@@ -14,6 +14,7 @@
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+use App\Models\Order;
 use Illuminate\Support\Facades\Route;
 
 //Route::get('/', 'PagesController@root')->name('root');
@@ -92,3 +93,20 @@ Route::get('products/{product}', 'ProductsController@show')->name('products.show
 //支付宝服务器回调
 //服务器端回调的路由不能放到带有 auth 中间件的路由组中，因为支付宝的服务器请求不会带有认证信息
 Route::post('payment/alipay/notify', 'PaymentController@alipayNotify')->name('payment.alipay.notify');
+
+//测试sql语句
+Route::get('aaa',function(){
+    $order = Order::find(15);
+    $order->load('items.product');
+    //循环遍历订单的销量
+    foreach ($order->items as $item){
+        $product = $item->product;
+        //计算对应商品的销量
+        $soldCount = App\Models\OrderItem::where('product_id',$product->id)
+            ->whereHas('order',function($query){
+                $query->whereNotNull('paid_at');//关联的订单已支付
+            })->sum('amount');
+    }
+    return $soldCount;
+}
+    )->name('a');
