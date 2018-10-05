@@ -103,7 +103,7 @@ class OrdersController extends Controller
         //$grid->closed('Closed');
         //$grid->reviewed('Reviewed');
         $grid->ship_status('物流')->display(function ($value) {
-            return Order::$refundStatusMap[$value];
+            return Order::$shipStatusMap[$value];
         });
         //$grid->ship_data('Ship data');
         //$grid->extra('Extra');

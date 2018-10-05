@@ -69,12 +69,14 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('orders', 'OrdersController@index')->name('orders.index');
         //订单详情
         Route::get('orders/{order}', 'OrdersController@show')->name('orders.show');
-
+        //订单收货
+        Route::post('orders/{order}/received', 'OrdersController@received')->name('orders.received');
         //支付宝支付
         Route::get('payment/{order}/alipay', 'PaymentController@payByAlipay')->name('payment.alipay');
-
         //支付宝前端回调测试
         Route::get('payment/alipay/return', 'PaymentController@alipayReturn')->name('payment.alipay.return');
+
+
     });
 
     //支付宝沙箱支付测试
@@ -95,18 +97,18 @@ Route::get('products/{product}', 'ProductsController@show')->name('products.show
 Route::post('payment/alipay/notify', 'PaymentController@alipayNotify')->name('payment.alipay.notify');
 
 //测试sql语句
-Route::get('aaa',function(){
+Route::get('aaa', function () {
     $order = Order::find(15);
     $order->load('items.product');
     //循环遍历订单的销量
-    foreach ($order->items as $item){
+    foreach ($order->items as $item) {
         $product = $item->product;
         //计算对应商品的销量
-        $soldCount = App\Models\OrderItem::where('product_id',$product->id)
-            ->whereHas('order',function($query){
+        $soldCount = App\Models\OrderItem::where('product_id', $product->id)
+            ->whereHas('order', function ($query) {
                 $query->whereNotNull('paid_at');//关联的订单已支付
             })->sum('amount');
     }
     return $soldCount;
 }
-    )->name('a');
+)->name('a');
