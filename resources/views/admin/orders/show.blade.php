@@ -41,7 +41,7 @@
             @endforeach
             <tr>
                 <td>订单金额：</td>
-                <td >￥{{ $order->total_amount }}</td>
+                <td>￥{{ $order->total_amount }}</td>
                 <td>发货状态：</td>
                 <td>{{\App\Models\Order::$shipStatusMap[$order->ship_status]}}</td>
             </tr>
@@ -90,7 +90,72 @@
             @endif
             {{--展示发货表单结束--}}
             {{--订单发货结束--}}
+
+            {{--订单退款开始--}}
+            @if($order->refund_status!==\App\Models\Order::REFUND_STATUS_PENDING)
+                <tr>
+                    <td>退款状态：</td>
+                    <td colspan="2">{{\App\Models\Order::$refundStatusMap[$order->refund_status]}}
+                        ,理由：{{$order->extra['refund_reason']}}</td>
+                    <td>
+                        {{--如果订单状态是已经申请退款，则展示处理按钮--}}
+                        @if($order->refund_status === \App\Models\Order::REFUND_STATUS_APPLIED)
+                            <button class="btn btn-sm btn-success" id="btn-refund-agree">同意</button>
+                            <button class="btn btn-sm btn-danger" id="btn-refund-disagree">不同意</button>
+                        @endif
+                    </td>
+                </tr>
+            @endif
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+        //不同意按钮点击事件
+        $('#btn-refund-disagree').click(function () {
+            //laravel-admin的swal是v1
+            swal({
+                title: '输入拒绝理由',
+                type: 'input',
+                showCancelButton: true,
+                closeOnConfirm: false,
+                confirmButtonText: '确认',
+                cancelButtonText: '取消',
+            }, function (inputValue) {
+                //用户点击取消，inputValue为false
+                //===是为了区分用户点击取消还是没有输入
+                if (inputValue === false) {
+                    return;
+                }
+                if (!inputValue) {
+                    swal('理由不能为空', '', 'error');
+                    return;
+                }
+                //laravel-admin没有axios，使用jquery的ajax方法求情
+                $.ajax({
+                    url: '{{route('admin.orders.handle_refund',[$order->id])}}',
+                    type: 'post',
+                    data: JSON.stringify({//请求变成JSON字符串
+                        agree: false,//拒绝申请
+                        reason: inputValue,
+                        //带上Token
+                        //laravel-admin可以使用LA.token获得CSRF Token
+                        _token: LA.token,
+                    }),
+                    contentType: 'application/json',//请求的数据格式为JSON
+                    success: function (data) {
+                        swal({
+                            title: '操作成功',
+                            type: 'success',
+                        }, function () {
+                            //成功后点击按钮刷新页面
+                            location.reload();
+                        });
+                    }
+                });
+            });
+        });
+    });
+</script>

@@ -104,6 +104,14 @@
                                     @endif
                                 </div>
                             </div>
+                            {{--拒绝退款开始--}}
+                            @if(isset($order->extra['refund_disagree_reason']))
+                                <div>
+                                    <span>拒绝退款理由：</span>
+                                    <div class="value">{{$order->extra['refund_disagree_reason']}}</div>
+                                </div>
+                            @endif
+                            {{--拒绝退款结束--}}
                             {{--支付开始--}}
                             @if(!$order->paid_at&&!$order->closed)
                                 <div class="payment-buttons">
@@ -166,7 +174,14 @@
                 swal({
                     text: '请输入退款理由',
                     content: 'input',
+                    showCancelButton: true,
+                    closeOnConfirm: false,
+
+                    buttons: ['取消', '确定'],
                 }).then(function (input) {
+                    if (input === false) {
+                        return;
+                    }
                     //当用户点击swal弹出框上的按钮是触发这个函数
                     if (!input) {
                         swal('退款理由不可为空', '', 'error');
@@ -181,7 +196,6 @@
                                     location.reload();
                                 });
                         });
-
                 });
             });
         });
