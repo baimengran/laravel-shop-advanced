@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderReviewed;
 use App\Exceptions\InvalidRequestException;
 use App\Http\Requests\OrderRequest;
+use App\Http\Requests\SendReviewRequest;
 use App\Jobs\CloseOrder;
 use App\Models\Order;
 use App\Models\ProductSku;
@@ -64,7 +66,14 @@ class OrdersController extends Controller
         return view('orders.show', ['order' => $order->load(['items.productSku', 'items.product'])]);
     }
 
-
+    /**
+     * 用户收货
+     * @param Order $order
+     * @param Request $request
+     * @return Order
+     * @throws InvalidRequestException
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
     public function received(Order $order, Request $request)
     {
         //校验
@@ -79,5 +88,66 @@ class OrdersController extends Controller
 
         //返回上一页
         return $order;
+    }
+
+    /**
+     * 评价页面
+     * @param Order $order
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @throws InvalidRequestException
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    public function review(Order $order)
+    {
+        //检验权限
+        $this->authorize('view', $order);
+        //判断是否已经支付
+        if (!$order->paid_at) {
+            throw new InvalidRequestException('该订单未支付，不可评分');
+        }
+        //用load方法加载关联数据，避免N+1性能问题
+        return view('orders.review', ['order' => $order->load(['items.productSku', 'items.product'])]);
+    }
+
+    /**
+     * 评价提交
+     * @param Order $order
+     * @param SendReviewRequest $request
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws InvalidRequestException
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws \Throwable
+     */
+    public function sendReview(Order $order, SendReviewRequest $request)
+    {
+        //校验权限
+        $this->authorize('view', $order);
+        //判断是否支付
+        if (!$order->paid_at) {
+            throw new InvalidRequestException('该订单未支付，不可评价');
+        }
+        //判断是否已经评价
+        if ($order->reviewed) {
+            throw new InvalidRequestException('该订单已评价，不可重复评价');
+        }
+        $reviews = $request->input('reviews');
+        //开启事务
+        DB::transaction(function () use ($reviews, $order) {
+            //遍历用户提交的数据
+            foreach ($reviews as $review) {
+                $orderItem = $order->items()->findOrFail($review['id']);
+                //保存评分和评价
+                $orderItem->update([
+                    'rating' => $review['rating'],
+                    'review' => $review['review'],
+                    'reviewed_at' => Carbon::now(),
+                ]);
+            }
+            //将订单标记为已评价
+            $order->update(['reviewed' => true]);
+            //触发更新商品评论信息事件
+            event(new OrderReviewed($order));
+        });
+        return redirect()->back();
     }
 }
