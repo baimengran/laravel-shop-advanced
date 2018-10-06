@@ -80,6 +80,10 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('orders/{order}/review', 'OrdersController@review')->name('orders.review.show');
         //商品评价提交
         Route::post('orders/{order}/review', 'OrdersController@sendReview')->name('orders.review.store');
+
+        //申请退款
+        Route::post('orders/{order}/apply_refund', 'OrdersController@applyRefund')->name('orders.apply_refund');
+
     });
 
     //支付宝沙箱支付测试
@@ -116,7 +120,7 @@ Route::get('aaa', function () {
 }
 )->name('a');
 
-Route::get('li',function(){
+Route::get('li', function () {
     $event = App\Models\Order::find(20);
     $items = $event->items()->with(['product'])->ge();
 
