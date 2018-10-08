@@ -14,6 +14,9 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
         //支付宝回调服务器RUL
         'payment/alipay/notify',
-        'payment/wechat/notify'
+        //微信支付服务器回调url
+        'payment/wechat/notify',
+        //微信退款回调路由
+        'payment/wechat/refund_notify',
     ];
 }

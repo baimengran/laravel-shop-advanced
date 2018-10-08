@@ -104,12 +104,14 @@ Route::group(['middleware' => 'auth'], function () {
 //商品详情页面
 Route::get('products/{product}', 'ProductsController@show')->name('products.show');
 
-//支付宝服务器回调
+//支付宝支付服务器回调
 //服务器端回调的路由不能放到带有 auth 中间件的路由组中，因为支付宝的服务器请求不会带有认证信息
 Route::post('payment/alipay/notify', 'PaymentController@alipayNotify')->name('payment.alipay.notify');
 
-//微信服务器回调
+//微信支付服务器回调
 Route::post('payment/wechat/notify', 'PaymentController@wechatNotify')->name('payment.wechat.notify');
+//微信退款回调
+Route::post('payment/wechat/refund_notify', 'PaymentController@wechatRefundNotify')->name('payment.wechat.refund_notify');
 
 //测试sql语句
 Route::get('aaa', function () {
