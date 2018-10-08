@@ -48,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         //创建一个名为wechat_pay的单例对象
         $this->app->singleton('wechat_pay', function () {
             $config = config('pay.wechat');
+            $config['notify_url']='http://xxx';//微信支付回调
             //判断当前项目是否运行咋线上环境
             if (app()->environment() !== 'production') {
                 $config['log']['level'] = Logger::DEBUG;

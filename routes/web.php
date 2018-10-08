@@ -71,10 +71,15 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('orders/{order}', 'OrdersController@show')->name('orders.show');
         //订单收货
         Route::post('orders/{order}/received', 'OrdersController@received')->name('orders.received');
+
         //支付宝支付
         Route::get('payment/{order}/alipay', 'PaymentController@payByAlipay')->name('payment.alipay');
         //支付宝前端回调测试
         Route::get('payment/alipay/return', 'PaymentController@alipayReturn')->name('payment.alipay.return');
+
+        //微信支付
+        Route::get('payment/{order}/wechat', 'PaymentController@payByWechat')->name('payment.wechat');
+
 
         //商品评价页面
         Route::get('orders/{order}/review', 'OrdersController@review')->name('orders.review.show');
@@ -103,6 +108,9 @@ Route::get('products/{product}', 'ProductsController@show')->name('products.show
 //服务器端回调的路由不能放到带有 auth 中间件的路由组中，因为支付宝的服务器请求不会带有认证信息
 Route::post('payment/alipay/notify', 'PaymentController@alipayNotify')->name('payment.alipay.notify');
 
+//微信服务器回调
+Route::post('payment/wechat/notify', 'PaymentController@wechatNotify')->name('payment.wechat.notify');
+
 //测试sql语句
 Route::get('aaa', function () {
     $order = Order::find(15);
@@ -117,34 +125,33 @@ Route::get('aaa', function () {
             })->sum('amount');
     }
     return $soldCount;
-}
-)->name('a');
-
-Route::get('li', function () {
-    $event = App\Models\Order::find(20);
-    $items = $event->items()->with(['product'])->ge();
-
-    foreach ($items as $item) {
-        //商品id与当前订单商品id相同
-        $result = App\Models\OrderItem::where('product_id', $item->product_id)
-            //订单是已经支付的
-            ->whereHas('order', function ($query) {
-                $query->whereNotNull('paid_at');
-            })->first([
-                //first() 方法接受一个数组作为参数，代表此次 SQL 要查询出来的字段，
-                //默认情况下 Laravel 会给数组里面的值的两边加上 ` 这个符号，比如 first(['name', 'email']) 生成的 SQL
-                // 会类似：select `name`, `email` from xxx
-                //  如果直接传入 first(['count(*) as review_count', 'avg(rating) as rating'])，
-                //最后生成的 SQL 肯定是不正确的。这里用 DB::raw() 方法来解决这个问题，
-                //Laravel 在构建 SQL 的时候如果遇到 DB::raw() 就会把 DB::raw() 的参数原样拼接到 SQL 里
-                DB::raw('count(*) as review_count'),
-                DB::raw('avg(rating) as rating')
-            ]);
-        $item->product->update([
-            'rating' => $result->rating,
-            'review_count' => $result->review_count,
-        ]);
-    }
-    return 'd';
 });
+
+//Route::get('li', function () {
+//    $event = App\Models\Order::find(20);
+//    $items = $event->items()->with(['product'])->ge();
+//
+//    foreach ($items as $item) {
+//        //商品id与当前订单商品id相同
+//        $result = App\Models\OrderItem::where('product_id', $item->product_id)
+//            //订单是已经支付的
+//            ->whereHas('order', function ($query) {
+//                $query->whereNotNull('paid_at');
+//            })->first([
+//                //first() 方法接受一个数组作为参数，代表此次 SQL 要查询出来的字段，
+//                //默认情况下 Laravel 会给数组里面的值的两边加上 ` 这个符号，比如 first(['name', 'email']) 生成的 SQL
+//                // 会类似：select `name`, `email` from xxx
+//                //  如果直接传入 first(['count(*) as review_count', 'avg(rating) as rating'])，
+//                //最后生成的 SQL 肯定是不正确的。这里用 DB::raw() 方法来解决这个问题，
+//                //Laravel 在构建 SQL 的时候如果遇到 DB::raw() 就会把 DB::raw() 的参数原样拼接到 SQL 里
+//                DB::raw('count(*) as review_count'),
+//                DB::raw('avg(rating) as rating')
+//            ]);
+//        $item->product->update([
+//            'rating' => $result->rating,
+//            'review_count' => $result->review_count,
+//        ]);
+//    }
+//    return 'd';
+//});
 

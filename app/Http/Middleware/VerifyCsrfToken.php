@@ -13,6 +13,7 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         //支付宝回调服务器RUL
-        'payment/alipay/notify'
+        'payment/alipay/notify',
+        'payment/wechat/notify'
     ];
 }

@@ -27,10 +27,10 @@
                                         </a>
                                     </div>
                                     <div>
-            <span class="product-title">
-               <a target="_blank"
-                  href="{{ route('products.show', [$item->product_id]) }}">{{ $item->product->title }}</a>
-             </span>
+                                        <span class="product-title">
+                                            <a target="_blank"
+                                               href="{{ route('products.show', [$item->product_id]) }}">{{ $item->product->title }}</a>
+                                        </span>
                                         <span class="sku-title">{{ $item->productSku->title }}</span>
                                     </div>
                                 </td>
@@ -117,6 +117,7 @@
                                 <div class="payment-buttons">
                                     <a class="btn btn-primary btn-sm"
                                        href="{{route('payment.alipay',['order'=>$order->id])}}">支付宝支付</a>
+                                    <a class="btn btn-sm btn-success" id="btn-wechat">微信支付</a>
                                 </div>
                             @endif
                             {{--支付结束--}}
@@ -145,13 +146,29 @@
 @section('scriptsAfterJs')
     <script>
         $(document).ready(function () {
+            //微信支付按钮事件
+            $('#btn-wechat').click(function () {
+                swal({
+                    //content参数可以是一个DOM元素，这里用JQuery动态生成一个img标签，并通过[0]的方式获取到DOM元素
+                    content: $('<img src="{{route('payment.wechat',['order'=>$order->id])}}">')[0],
+                    text:'敬请期待',
+                    //buttons参数可以设置按钮显示文案
+                    buttons: ['关闭', '以完成付款'],
+                }).then(function (result) {
+                    //如果用户点击了以完成支付按钮，则刷新页面
+                    if (result) {
+                        location.reload();
+                    }
+                });
+            });
+
             //确认收货按钮
             $('#btn-receive').click(function () {
                 //弹出确认框
                 swal({
                     title: '确认已经收到商品？',
                     icon: 'warning',
-                    buttons: true,
+                    //buttons: true,
                     dangerMode: true,
                     buttons: ['取消', '确认'],
                 })
