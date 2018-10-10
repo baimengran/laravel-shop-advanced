@@ -32,6 +32,16 @@ Route::group([
     //退款处理
     $router->post('orders/{order}/refund', 'OrdersController@handleRefund')->name('admin.orders.handle_refund');
     //优惠卷列表
-    $router->get('coupon_codes','CouponCodesController@index');
+    $router->get('coupon_codes', 'CouponCodesController@index');
+    //优惠卷新增动作
+    $router->post('coupon_codes', 'CouponCodesController@store');
+    //优惠卷新增
+    $router->get('coupon_codes/create', 'CouponCodesController@create');
+    //编辑优惠卷
+    $router->get('coupon_codes/{id}/edit', 'CouponCodesController@edit');
+    //编辑优惠卷动作
+    $router->put('coupon_codes/{id}', 'CouponCodesController@update');
+    //删除优惠卷
+    $router->delete('coupon_codes/{id}', 'CouponCodesController@destroy');
 
 });
