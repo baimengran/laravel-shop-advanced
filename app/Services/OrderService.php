@@ -9,8 +9,10 @@
 namespace App\Services;
 
 
+use App\Exceptions\CouponCodeUnavailableException;
 use App\Exceptions\InvalidRequestException;
 use App\Jobs\CloseOrder;
+use App\Models\CouponCode;
 use App\Models\Order;
 use App\Models\ProductSku;
 use App\Models\User;
@@ -21,10 +23,14 @@ use Carbon\Carbon;
 class OrderService
 {
 
-    public function store(User $user, UserAddress $address, $remark, $items)
+    public function store(User $user, UserAddress $address, $remark, $items, CouponCode $coupon = null)
     {
+        //如果传入了优惠卷，先检查是否可用
+        if ($coupon) {
+            $coupon->checkAvailable();
+        }
         //开启一个事务
-        $order = \DB::transaction(function () use ($user, $address, $remark, $items) {
+        $order = \DB::transaction(function () use ($user, $address, $remark, $items, $coupon) {
             //更新最后使用时间
             $address->update(['last_used_at' => Carbon::now()]);
             //创建一个订单
@@ -69,8 +75,22 @@ class OrderService
                 }
             }
 
+            //使用优惠卷优惠规则
+            if ($coupon) {
+                //验证总金额是否符合优惠卷规则
+                $coupon->checkAvailable($totalAmount);
+                //把订单金额修改为优惠后的金额
+                $totalAmount = $coupon->getAdjustedPrice($totalAmount);
+                //将订单与优惠卷关联
+                $order->couponCode()->associate($coupon);
+                //增加优惠卷的用量，需判断返回值
+                if ($coupon->changeUsed() <= 0) {
+                    throw new CouponCodeUnavailableException('该优惠卷已被兑完');
+                }
+            }
+
             //更新订单总金额
-            $order->update(['total_amount'=>$totalAmount]);
+            $order->update(['total_amount' => $totalAmount]);
 
             //将下单的商品从购物车中移除
             //collect辅助函数创建集合，并利用集合方法pluck()方法通过给定键获取所有集合值
@@ -85,7 +105,7 @@ class OrderService
         });
 
         //dispatch()辅助函数分发关闭订单任务队列
-        dispatch(new CloseOrder($order,config('app.order_ttl')));
+        dispatch(new CloseOrder($order, config('app.order_ttl')));
 
         return $order;
     }

@@ -159,6 +159,7 @@
                     address_id: $('#order-form').find('select[name=address]').val(),
                     items: [],
                     remark: $('#order-form').find('textarea[name=remark]').val(),
+                    coupon_code:$('input[name=coupon_code]').val(),//从优惠码框中获取优惠码
                 };
                 //遍历table标签内所带有data-id属性的tr标签（每一个购物车中的商品SKU）
                 $('table tr[data-id]').each(function () {
