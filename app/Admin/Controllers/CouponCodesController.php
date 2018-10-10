@@ -9,6 +9,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Show;
+use Illuminate\Support\Facades\Input;
 
 class CouponCodesController extends Controller
 {
@@ -107,9 +108,9 @@ class CouponCodesController extends Controller
         $grid->created_at('创建时间');
         //$grid->updated_at('Updated at');
 
-//        $grid->actions(function ($actions) {
-//            $actions->disableView();
-//        });
+        $grid->actions(function ($actions) {
+            $actions->disableView();
+        });
         return $grid;
     }
 
@@ -162,7 +163,7 @@ class CouponCodesController extends Controller
         $form->radio('type', '类型')->options(CouponCode::$typeMap)->rules('required');
         $form->text('value', '折扣')->rules(function ($form) {
             //如果选了百分比折扣类型，折扣范围是1~99
-            if ($form->type === CouponCode::TYPE_PERCENT) {
+            if (Input::all()['type'] === CouponCode::TYPE_PERCENT) {
                 return 'required|numeric|between:1,99';
             } else {
                 //否则只要大于0.01即可
