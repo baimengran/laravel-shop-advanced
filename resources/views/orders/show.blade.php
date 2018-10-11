@@ -84,6 +84,14 @@
                             @endif
                         </div>
                         <div class="order-summary text-right">
+                            {{--展示优惠卷信息开始--}}
+                            @if($order->couponCode)
+                                <div class="text-primary">
+                                    <span>优惠信息：</span>
+                                    <div class="value">{{$order->couponCode->description}}</div>
+                                </div>
+                            @endif
+                            {{--展示优惠卷信息结束--}}
                             <div class="total-amount">
                                 <span>订单总价：</span>
                                 <div class="value">￥{{ $order->total_amount }}</div>
@@ -151,7 +159,7 @@
                 swal({
                     //content参数可以是一个DOM元素，这里用JQuery动态生成一个img标签，并通过[0]的方式获取到DOM元素
                     content: $('<img src="{{route('payment.wechat',['order'=>$order->id])}}">')[0],
-                    text:'敬请期待',
+                    text: '敬请期待',
                     //buttons参数可以设置按钮显示文案
                     buttons: ['关闭', '以完成付款'],
                 }).then(function (result) {

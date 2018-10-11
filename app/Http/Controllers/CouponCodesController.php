@@ -10,8 +10,9 @@ use Illuminate\Support\Carbon;
 class CouponCodesController extends Controller
 {
     //
-    public function show($code)
+    public function show($code, Request $request)
     {
+        //$record = CouponCode::query()->where('code', $code)->first();
         //判断优惠卷是否存在
         if (!$record = CouponCode::query()->where('code', $code)->first()) {
             //abort() 方法可以直接中断程序的运行，接受的参数会变成 Http 状态码返回。
@@ -31,8 +32,8 @@ class CouponCodesController extends Controller
 //        }
 //        if ($record->not_after && $record->not_after->lt(Carbon::now())) {
 //            return response()->json(['msg' => '该优惠卷已过期'], 403);
-//        }
-        $record->checkAvailable();
+//        }checkAvailable
+        $record->checkAvailable($request->user());
         return $record;
     }
 }

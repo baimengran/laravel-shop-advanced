@@ -55,7 +55,7 @@ class CouponCode extends Model
     }
 
     /**
-     * 后台页面去除.00字符
+     * 去除.00字符
      * @return string
      */
     public function getDescriptionAttribute()
@@ -72,11 +72,13 @@ class CouponCode extends Model
 
     /**
      * 校验优惠卷信息
+     * @param User $user
      * @param null $orderAmount
      * @throws CouponCodeUnavailableException
      */
-    public function checkAvailable($orderAmount = null)
+    public function checkAvailable(User $user, $orderAmount = null)
     {
+        //throw new CouponCodeUnavailableException('f');
         if (!$this->enabled) {
             throw new CouponCodeUnavailableException('优惠卷不存在');
         }
@@ -84,7 +86,7 @@ class CouponCode extends Model
         if ($this->total - $this->used <= 0) {
             throw new CouponCodeUnavailableException('该优惠卷已被兑完');
         }
-        if ($this->not_before && $this->not_before->gt(Carbon::now())) {
+        if (!$this->not_before || $this->not_before && $this->not_before->gt(Carbon::now())) {
             throw new CouponCodeUnavailableException('该优惠卷现在还不能使用');
         }
         if ($this->not_after && $this->not_after->lt(Carbon::now())) {
@@ -93,6 +95,21 @@ class CouponCode extends Model
 
         if (!is_null($orderAmount) && $orderAmount < $this->min_amount) {
             throw new CouponCodeUnavailableException('订单金额不满足该优惠卷最低金额');
+        }
+
+        $used = Order::query()->where('user_id', $user->id)
+            ->where('coupon_code_id', $this->id)
+            ->where(function ($query) {
+                $query->where(function ($query) {
+                    $query->whereNull('paid_at')
+                        ->where('closed', false);
+                })->orWhere(function ($query) {
+                    $query->whereNotNull('paid_at')
+                        ->where('refund_status', Order::REFUND_STATUS_PENDING);
+                });
+            })->exists();
+        if ($used) {
+            throw new CouponCodeUnavailableException('你已经使用过这张优惠券了');
         }
     }
 

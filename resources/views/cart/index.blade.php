@@ -206,7 +206,9 @@
                         } else if (error.response.status === 419) {
                             //http状态码为419，代表用户未登录，或登录状态以过期
                             swal('请先登录', '', 'error');
-                        } else {
+                        } else if(error.response.status===403){
+                            swal(error.response.data.msg,'','error');
+                        }else {
                             //其他情况，系统挂了
                             swal('系统错误', '', 'error');
                         }
