@@ -86,7 +86,7 @@ class CouponCode extends Model
         if ($this->total - $this->used <= 0) {
             throw new CouponCodeUnavailableException('该优惠卷已被兑完');
         }
-        if (!$this->not_before || $this->not_before && $this->not_before->gt(Carbon::now())) {
+        if (!$this->not_before ||  $this->not_before->gt(Carbon::now())) {
             throw new CouponCodeUnavailableException('该优惠卷现在还不能使用');
         }
         if ($this->not_after && $this->not_after->lt(Carbon::now())) {
