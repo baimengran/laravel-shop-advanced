@@ -15,6 +15,9 @@
 //     return view('welcome');
 // });
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\ProductSku;
 use Illuminate\Support\Facades\Route;
 
 //Route::get('/', 'PagesController@root')->name('root');
@@ -132,31 +135,66 @@ Route::get('aaa', function () {
     return $soldCount;
 });
 
-//Route::get('li', function () {
-//    $event = App\Models\Order::find(20);
-//    $items = $event->items()->with(['product'])->ge();
-//
-//    foreach ($items as $item) {
-//        //商品id与当前订单商品id相同
-//        $result = App\Models\OrderItem::where('product_id', $item->product_id)
-//            //订单是已经支付的
-//            ->whereHas('order', function ($query) {
-//                $query->whereNotNull('paid_at');
-//            })->first([
-//                //first() 方法接受一个数组作为参数，代表此次 SQL 要查询出来的字段，
-//                //默认情况下 Laravel 会给数组里面的值的两边加上 ` 这个符号，比如 first(['name', 'email']) 生成的 SQL
-//                // 会类似：select `name`, `email` from xxx
-//                //  如果直接传入 first(['count(*) as review_count', 'avg(rating) as rating'])，
-//                //最后生成的 SQL 肯定是不正确的。这里用 DB::raw() 方法来解决这个问题，
-//                //Laravel 在构建 SQL 的时候如果遇到 DB::raw() 就会把 DB::raw() 的参数原样拼接到 SQL 里
-//                DB::raw('count(*) as review_count'),
-//                DB::raw('avg(rating) as rating')
-//            ]);
-//        $item->product->update([
-//            'rating' => $result->rating,
-//            'review_count' => $result->review_count,
+Route::get('li', function () {
+    $event = App\Models\Order::find(20);
+    $items = $event->items()->with(['product'])->ge();
+
+    foreach ($items as $item) {
+        //商品id与当前订单商品id相同
+        $result = App\Models\OrderItem::where('product_id', $item->product_id)
+            //订单是已经支付的
+            ->whereHas('order', function ($query) {
+                $query->whereNotNull('paid_at');
+            })->first([
+                //first() 方法接受一个数组作为参数，代表此次 SQL 要查询出来的字段，
+                //默认情况下 Laravel 会给数组里面的值的两边加上 ` 这个符号，比如 first(['name', 'email']) 生成的 SQL
+                // 会类似：select `name`, `email` from xxx
+                //  如果直接传入 first(['count(*) as review_count', 'avg(rating) as rating'])，
+                //最后生成的 SQL 肯定是不正确的。这里用 DB::raw() 方法来解决这个问题，
+                //Laravel 在构建 SQL 的时候如果遇到 DB::raw() 就会把 DB::raw() 的参数原样拼接到 SQL 里
+                DB::raw('count(*) as review_count'),
+                DB::raw('avg(rating) as rating')
+            ]);
+        $item->product->update([
+            'rating' => $result->rating,
+            'review_count' => $result->review_count,
+        ]);
+    }
+    return 'd';
+});
+
+
+Route::get('pro',function(){
+    $items = OrderItem::all();
+    $products = collect([]);
+    $products = $products->merge($items->pluck('product'));
+    //dd(Product::query()->where('review_count','<>',0)->get());
+$results = collect([]);
+foreach(){
+    $products->unique('id')->each(function(Product $product) use($results) {
+        //查出该商品的销量、评分、评价数
+        $result = App\Models\OrderItem::query()
+            ->where('product_id',$product->id)
+            ->whereHas('order',function($query){
+                $query->whereNotNull('paid_at');
+            })->whereHas('product',function($query){
+                $query->where('review_count','!=',0);
+            })->first([
+                \DB::raw('count(*) as review_count'),
+                \DB::raw('avg(rating) as rating'),
+                \DB::raw('sum(amount) as sold_count'),
+            ]);
+$results = $results->merge($result);
+//        $product->update([
+//            'rating'=>$result->rating?:5,//如果某个商品没有评分，则默认5分
+//            'review_count'=>$result->review_count,
+//            'sold_count'=>$result->sold_count,
 //        ]);
+    });
+dd($results);
+//    foreach($results as $item=>$product){
+//        echo ;
 //    }
-//    return 'd';
-//});
+
+});
 
