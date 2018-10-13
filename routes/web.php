@@ -170,7 +170,7 @@ Route::get('pro',function(){
     $products = $products->merge($items->pluck('product'));
     //dd(Product::query()->where('review_count','<>',0)->get());
 $results = collect([]);
-foreach(){
+//foreach(){
     $products->unique('id')->each(function(Product $product) use($results) {
         //查出该商品的销量、评分、评价数
         $result = App\Models\OrderItem::query()
