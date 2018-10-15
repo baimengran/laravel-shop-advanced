@@ -24,6 +24,19 @@ class Product extends Model
         return $this->hasMany(ProductSku::class);
     }
 
+    /**
+     * 分类关联
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * 图片url
+     * @return string
+     */
     public function getImageUrlAttribute()
     {
         // 如果 image 字段本身就已经是完整的 url 就直接返回
