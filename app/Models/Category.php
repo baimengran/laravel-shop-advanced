@@ -59,6 +59,7 @@ class Category extends Model
      */
     public function getPathIdsAttribute()
     {
+        //dd($this);
         //trim($str,'-')将字符串两端的 - 符号去掉
         //explode()将字符串以 - 为分隔切割为数组
         //最后array_filter将数组中的空值移除
@@ -71,6 +72,7 @@ class Category extends Model
      */
     public function getAncestorsAttribute()
     {
+        //return $this->path_ids;
         return Category::query()
             //使用getPathIdsAttribute()访问器获取所有祖先类目ID
             ->whereIn('id', $this->path_ids)
@@ -85,7 +87,8 @@ class Category extends Model
      */
     public function getFullNameAttribute()
     {
-        return $this->ancesors//获取所有祖先类目
+        //dd($this->ancestors);
+        return $this->ancestors//获取所有祖先类目
         ->pluck('name')//获取所有祖先类目的name字段作为一个数组
         ->push($this->name)//将当前类目的name字段值追加到数组的末尾
         ->implode(' - ');//用 - 符号将数组的值组装成一个字符串

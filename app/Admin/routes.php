@@ -43,5 +43,20 @@ Route::group([
     $router->put('coupon_codes/{id}', 'CouponCodesController@update');
     //删除优惠卷
     $router->delete('coupon_codes/{id}', 'CouponCodesController@destroy');
+    //分类列表
+    $router->get('categories', 'CategoriesController@index');
+    //分类添加页面
+    $router->get('categories/create', 'CategoriesController@create');
+    //分类修改页面
+    $router->get('categories/{id}/edit', 'CategoriesController@edit');
+    //分类添加动作
+    $router->post('categories', 'CategoriesController@store');
+    //分类修改动作
+    $router->put('categories/{id}', 'CategoriesController@update');
+    //分类删除
+    $router->delete('categories/{id}', 'CategoriesController@destroy');
+    //分类查询父类接口
+    $router->get('api/categories', 'CategoriesController@apiIndex');
+
 
 });
