@@ -9,6 +9,30 @@
                     <!-- 筛选组件开始 -->
                     <div class="row">
                         <form action="{{ route('products.index') }}" class="form-inline search-form">
+                            {{--面包屑开始--}}
+                            {{--添加 全部 连接直接跳转到商品列表页--}}
+                            <a class="all-products" href="{{route('products.index')}}">全部</a> &gt;
+                            {{--如果当前是通过类目筛选的--}}
+                            @if($category)
+                                {{--遍历这个类目所有祖先类目，--}}
+                                @foreach($category->ancestors as $ancestor)
+                                    {{--添加一个名为该祖先类目名的连接--}}
+                                    <span class="category">
+                                        <a href="{{route('products.index',['category_id'=>$ancestor->id])}}">
+                                            {{$ancestor->name}} &gt;
+                                        </a>
+                                    </span>
+                                    <span></span>
+                                @endforeach
+                                {{--展示当前类目名称--}}
+                                <span class="category">
+                                    {{$category->name}}
+                                    <span></span>
+                                </span>
+                                {{--当前类目的id，以确保调整排序方式时，保证category_id参数不丢--}}
+                                <input type="hidden" name="category_id" value="{{$category->id}}"/>
+                            @endif
+                            {{--面包屑结束--}}
                             <input type="text" class="form-control input-sm" name="search" placeholder="搜索">
                             <button class="btn btn-primary btn-sm">搜索</button>
                             <select name="order" class="form-control input-sm pull-right">
@@ -23,6 +47,26 @@
                         </form>
                     </div>
                     <!-- 筛选组件结束 -->
+
+                    {{--展示子类目开始--}}
+                    <div class="filters">
+                        {{--如果当前是通过类目筛选，并此类目是一个父类目--}}
+                        @if($category && $category->is_directory)
+                            <div class="row">
+                                <div class="col-xs-3 filter-key">子类目：</div>
+                                <div class="col-xs-9 filter-values">
+                                    {{--遍历直接子类目--}}
+                                    @foreach($category->children as $child)
+                                        <a href="{{route('products.index',['category_id'=>$child->id])}}">
+                                            {{$child->name}}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                    {{--展示子类目结束--}}
+
                     <div class="row products-list">
                         @foreach($products as $product)
                             <div class="col-xs-3 product-item">

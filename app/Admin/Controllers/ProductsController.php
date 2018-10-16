@@ -25,7 +25,7 @@ class ProductsController extends Controller
     {
         return $content
             ->header('商品列表')
-            //->description('description')
+            ->description('')
             ->body($this->grid());
     }
 
@@ -40,7 +40,7 @@ class ProductsController extends Controller
     {
         return $content
             ->header('Detail')
-            ->description('description')
+            ->description('')
             ->body($this->detail($id));
     }
 
@@ -55,7 +55,7 @@ class ProductsController extends Controller
     {
         return $content
             ->header('商品编辑')
-            ->description('description')
+            ->description('')
             ->body($this->form()->edit($id));
     }
 
@@ -69,7 +69,7 @@ class ProductsController extends Controller
     {
         return $content
             ->header('创建商品')
-            //->description('description')
+            ->description('')
             ->body($this->form());
     }
 
