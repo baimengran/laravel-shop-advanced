@@ -14,6 +14,12 @@ use App\Models\Category;
 class CategoryService
 {
 
+    /**
+     * 递归方法，返回所有类目
+     * @param null $parentId 要获取子类目的父类目ID，null代表获取所有类目
+     * @param null $allCategories 数据库中所有类目，null代表需呀从数据库中查询
+     * @return Category[]|\Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
+     */
     public function getCategoryTree($parentId = null, $allCategories = null)
     {
         if (is_null($allCategories)) {
