@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\ViewComposers\CategoryTreeComposer;
 use Illuminate\Support\ServiceProvider;
 use Monolog\Logger;
 use Yansongda\Pay\Pay;
@@ -15,7 +16,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        //当laravel渲染products.index和products.show模板时，就会使用CategoryTreeComposer类来注入类目树变量
+        //同时laravel还支持通配符，理由products.*即代表当渲染products目录下的模板时，都执行这个ViewComposer
+        \View::composer(['products.index', 'products.show'], CategoryTreeComposer::class);
+
     }
 
     /**

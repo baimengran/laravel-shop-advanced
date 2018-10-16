@@ -6,6 +6,7 @@ use App\Exceptions\InvalidRequestException;
 use App\Models\Category;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Services\CategoryService;
 use Illuminate\Http\Request;
 
 class ProductsController extends Controller
@@ -15,7 +16,7 @@ class ProductsController extends Controller
      * @param Request $request
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index(Request $request)
+    public function index(Request $request, CategoryService $categoryService)
     {
         //创建查询构建器
         $builder = Product::query()->where('on_sale', true);
