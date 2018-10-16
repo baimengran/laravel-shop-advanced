@@ -171,20 +171,17 @@ class CategoriesController extends Controller
         //dd(1);
         //用户输入的值通过q参数获取
         $search = $request->input('q');
-        $result = Category::query()
-            ->where('is_directory', true)
+        $result = Category::query()//boolval()方法转换成boolean
+            ->where('is_directory', boolval($request->input('is_directory',true)))
             ->where('name', 'like', '%'.$search . '%')
             ->paginate();
 
         //把查询出来的结果重新组装成laravel-admin需要的格式
+        //getCollection 获取到这个分页里的数据集合，setCollection 替换分页的数据
         $result->setCollection($result->getCollection()->map(function (Category $category) {
             return ['id' => $category->id, 'text' => $category->full_name];
         }));
-//        $category = Category::query()->where('id',7)->get();
-        //dd($category);
-//foreach($category as $item) {
-//    return ['id' => $item->id, 'text' => $item->full_name];
-//}
+
 
         return $result;
     }

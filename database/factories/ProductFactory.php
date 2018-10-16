@@ -18,7 +18,13 @@ $factory->define(App\Models\Product::class, function (Faker $faker) {
         "https://lccdn.phphub.org/uploads/images/201806/01/5320/pa7DrV43Mw.jpg",
     ]);
 
+    $category = \App\Models\Category::query()->where('is_directory', false)
+        ->inRandomOrder()->first();
+
     return [
+        //将取出的类目id赋值给category_id字段
+        //如果数据库中没有类目。则$category为null,同样category_id也设成null
+        'category_id' => $category ? $category->id : null,
         'title' => $faker->word,
         'description' => $faker->sentence,
         'image' => $image,

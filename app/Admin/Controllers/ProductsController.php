@@ -2,6 +2,7 @@
 
 namespace App\Admin\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
@@ -81,8 +82,10 @@ class ProductsController extends Controller
     {
         $grid = new Grid(new Product);
 
+        $grid->model()->with(['category']);
         $grid->id('Id')->sortable();
         $grid->title('商品名称');
+        $grid->column('category.name', '类目');
         //$grid->description('Description');
         //$grid->image('Image');
         $grid->on_sale('已上架')->display(function ($value) {
@@ -152,6 +155,14 @@ class ProductsController extends Controller
         $form->text('title', '商品名称')->rules('required');
         //$form->textarea('description', 'Description');
         //创建选择图片框,生成MD5随机文件名，并修改上传目录
+
+        //创建类目字段，使用ajax方式搜索添加
+        $form->select('category_id', '类目')->options(function ($id) {
+            $category = Category::find($id);
+            if ($category) {
+                return [$category->id => $category->full_name];
+            }
+        })->ajax('/admin/api/categories?is_directory=0');
         $form->image('image', '封面图片')->uniqueName()->move('products');
         //创建选择图片框
         // $form->image('image', '封面图片')->rules('required|image');
