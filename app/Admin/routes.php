@@ -58,5 +58,16 @@ Route::group([
     //分类查询父类接口
     $router->get('api/categories', 'CategoriesController@apiIndex');
 
+    //众筹商品列表
+    $router->get('crowdfunding_products', 'CrowdfundingProductsController@index');
+    //众筹商品添加页面
+    $router->get('crowdfunding_products/create', 'CrowdfundingProductsController@create');
+    //众筹商品添加动作
+    $router->post('crowdfunding_products', 'CrowdfundingProductsController@store');
+    //众筹商品修改页面
+    $router->get('crowdfunding_products/{id}/edit', 'CrowdfundingProductsController@edit');
+    //众筹商品修改动作
+    $router->put('crowdfunding_products/{id}', 'CrowdfundingProductsController@update');
+
 
 });
