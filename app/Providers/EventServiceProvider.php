@@ -8,6 +8,7 @@ use App\Listeners\RegisteredListener;
 use App\Listeners\SendOrderPaiMail;
 use App\Listeners\UpdateProductRating;
 use App\Listeners\UpdateProductSoldCount;
+use App\Listeners\UpdateCrowdfundingProductProgress;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -29,10 +30,12 @@ class EventServiceProvider extends ServiceProvider
         OrderPaid::class => [
             UpdateProductSoldCount::class,
             SendOrderPaiMail::class,
+            UpdateCrowdfundingProductProgress::class,
         ],
         OrderReviewed::class => [
             UpdateProductRating::class,
         ],
+
 
     ];
 
