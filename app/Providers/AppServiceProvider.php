@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\ViewComposers\CategoryTreeComposer;
+use Carbon\Carbon;
 use Illuminate\Support\ServiceProvider;
 use Monolog\Logger;
 use Yansongda\Pay\Pay;
@@ -20,6 +21,8 @@ class AppServiceProvider extends ServiceProvider
         //同时laravel还支持通配符，理由products.*即代表当渲染products目录下的模板时，都执行这个ViewComposer
         \View::composer(['products.index', 'products.show'], CategoryTreeComposer::class);
 
+        //使用Carbon::setLocale('zh')设置Carbon对象的diffForHumans()方法返回中文日期
+        Carbon::setLocale('zh');
     }
 
     /**

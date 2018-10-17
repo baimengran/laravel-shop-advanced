@@ -66,8 +66,10 @@ Route::group(['middleware' => 'auth'], function () {
         //购物车移除商品
         Route::delete('cart/{sku}', 'CartController@remove')->name('cart.remove');
 
-        //提交订单
+        //普通商品提交订单
         Route::post('orders', 'OrdersController@store')->name('orders.store');
+        //众筹商品提交订单
+        Route::post('crowdfunding_orders', 'OrdersController@crowdfunding')->name('crowdfunding_orders.store');
         //订单列表
         Route::get('orders', 'OrdersController@index')->name('orders.index');
         //订单详情
@@ -98,11 +100,11 @@ Route::group(['middleware' => 'auth'], function () {
     });
 
     //支付宝沙箱支付测试
-    Route::get('alipay',function(){
+    Route::get('alipay', function () {
         return app('alipay')->web([
-            'out_trade_no'=>time(),
-            'total_amount'=>'1',
-            'subject'=>'test subject -测试'
+            'out_trade_no' => time(),
+            'total_amount' => '1',
+            'subject' => 'test subject -测试'
         ]);
     });
 
@@ -164,34 +166,34 @@ Route::get('li', function () {
 });
 
 
-Route::get('pro',function(){
+Route::get('pro', function () {
     $items = OrderItem::all();
     $products = collect([]);
     $products = $products->merge($items->pluck('product'));
     //dd(Product::query()->where('review_count','<>',0)->get());
-$results = collect([]);
+    $results = collect([]);
 //foreach(){
-    $products->unique('id')->each(function(Product $product) use($results) {
+    $products->unique('id')->each(function (Product $product) use ($results) {
         //查出该商品的销量、评分、评价数
         $result = App\Models\OrderItem::query()
-            ->where('product_id',$product->id)
-            ->whereHas('order',function($query){
+            ->where('product_id', $product->id)
+            ->whereHas('order', function ($query) {
                 $query->whereNotNull('paid_at');
-            })->whereHas('product',function($query){
-                $query->where('review_count','!=',0);
+            })->whereHas('product', function ($query) {
+                $query->where('review_count', '!=', 0);
             })->first([
                 \DB::raw('count(*) as review_count'),
                 \DB::raw('avg(rating) as rating'),
                 \DB::raw('sum(amount) as sold_count'),
             ]);
-$results = $results->merge($result);
+        $results = $results->merge($result);
 //        $product->update([
 //            'rating'=>$result->rating?:5,//如果某个商品没有评分，则默认5分
 //            'review_count'=>$result->review_count,
 //            'sold_count'=>$result->sold_count,
 //        ]);
     });
-dd($results);
+    dd($results);
 //    foreach($results as $item=>$product){
 //        echo ;
 //    }

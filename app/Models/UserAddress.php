@@ -17,6 +17,8 @@ class UserAddress extends Model
         'contact_phone',
         'last_used_at'
     ];
+
+    protected $appends = ['full_address'];
     //定义字段是时间日期类型，$address->last_used_at返回时间日期对象（Carbon对象，laravel默认时间日期处理类）
     protected $dates = ['last_used_at'];
 
@@ -24,7 +26,8 @@ class UserAddress extends Model
      * 反向一对多（User->UserAddress）
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
@@ -32,7 +35,8 @@ class UserAddress extends Model
      * 获取完成地址访问器
      * @return string 完整地址
      */
-    public function getFullAddressAttribute(){
+    public function getFullAddressAttribute()
+    {
         return "{$this->province}{$this->city}{$this->district}{$this->address}";
     }
 
