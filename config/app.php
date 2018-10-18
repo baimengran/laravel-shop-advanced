@@ -2,6 +2,8 @@
 
 return [
 
+    //Ngrok域名
+    'ngrok_url' => env('NGROK_URL'),
     //订单关闭时间（需要修改.evn文件队列驱动---QUEUE_DRIVER=redis,并引入predis/predis包）
     //composer require predis/predis
     'order_ttl' => 1800,

@@ -37,7 +37,8 @@ class AppServiceProvider extends ServiceProvider
             $config = config('pay.alipay');
             //测试路由
             //$config['notify_url'] = 'http://requestbin.fullcontact.com/150q8oh1';//取得服务器回调参数测试
-            $config['notify_url'] = route('payment.alipay.notify');//服务器回调
+            //$config['notify_url'] = route('payment.alipay.notify');//服务器回调
+            $config['notify_url']=ngrok_url('payment.alipay.notify');//服务器回调
             $config['return_url'] = route('payment.alipay.return');//前端回调
             //判断当前项目运行环境是否为线上环境
             //app()->environment() 获取当前运行的环境，线上环境会返回 production。
@@ -56,8 +57,9 @@ class AppServiceProvider extends ServiceProvider
         //创建一个名为wechat_pay的单例对象
         $this->app->singleton('wechat_pay', function () {
             $config = config('pay.wechat');
-            $config['notify_url'] = 'http://xxx';//微信支付取得服务器回调参数测试
-            $config['notify_url'] = route('payment.wechat.notify');
+            //$config['notify_url'] = 'http://xxx';//微信支付取得服务器回调参数测试
+            //$config['notify_url'] = route('payment.wechat.notify');
+            $config['notify_url']=ngrok_url('payment.wechat.notify');
             //判断当前项目是否运行咋线上环境
             if (app()->environment() !== 'production') {
                 $config['log']['level'] = Logger::DEBUG;
