@@ -6,6 +6,8 @@
  * @version $Id$
  */
 
+use Moontoast\Math\BigNumber;
+
 /**
  * 当前请求的路由名称转换为CSS
  * @return [type] [description]
@@ -25,4 +27,15 @@ function ngrok_url($routeName, $parameters = [])
     }
     return route($routeName, $parameters);
 
+}
+
+/**
+ * 调用BigNumber扩展设置数字精度
+ * @param $number
+ * @param int $scale
+ * @return BigNumber
+ */
+function big_number($number, $scale = 2)
+{
+    return new BigNumber($number, $scale);
 }

@@ -51,7 +51,7 @@ class FinishCrowdFunding extends Command
             //众筹状态为众筹中
             ->where('status', CrowdfundingProduct::STATUS_FUNDING)
             ->get()
-            ->each(function (CrowdfundingProducts $crowdfundingProducts) {
+            ->each(function (CrowdfundingProduct $crowdfundingProducts) {
                 //如果众筹目标金额大于实际众筹金额
                 if ($crowdfundingProducts->target_amount > $crowdfundingProducts->total_amount) {
                     //调用众筹失败逻辑
