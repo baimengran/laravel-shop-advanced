@@ -2,6 +2,17 @@
 
 return [
 
+
+    //分期付款费率,key为期数，value为费率
+    'installment_fee_rate' => [
+        3 => 1.5,
+        6 => 2,
+        12 => 2.5,
+    ],
+    //最低分期金额
+    'min_installment_amount' => 300,
+    //逾期日息0.05%
+    'installment_fine_rate' => 0.05,
     //Ngrok域名
     'ngrok_url' => env('NGROK_URL'),
     //订单关闭时间（需要修改.evn文件队列驱动---QUEUE_DRIVER=redis,并引入predis/predis包）
