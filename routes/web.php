@@ -96,6 +96,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('installments/{installment}/alipay', 'InstallmentsController@payByAlipay')->name('installments.alipay');
         //分期付款支付宝前端回调
         Route::get('installments/alipay/return', 'InstallmentsController@alipayReturn')->name('installments.alipay.return');
+        //分期付款微信支付
+        Route::get('installments/{installment}/wechat', 'InstallmentsController@payByWechat')->name('installments.wechat');
 
         //商品评价页面
         Route::get('orders/{order}/review', 'OrdersController@review')->name('orders.review.show');
@@ -134,7 +136,8 @@ Route::post('payment/wechat/refund_notify', 'PaymentController@wechatRefundNotif
 
 //分期付款支付宝后台回调
 Route::post('installments/alipay/notify', 'InstallmentsController@alipayNotify')->name('installments.alipay.notify');
-
+//分期付款微信后台回调
+Route::post('installments/wechat/notify', 'InstallmentsController@wechatNotify')->name('installments.wechat.notify');
 
 //测试sql语句
 Route::get('aaa', function () {
