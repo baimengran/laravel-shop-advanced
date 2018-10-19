@@ -89,10 +89,13 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('payment/{order}/alipay', 'PaymentController@payByAlipay')->name('payment.alipay');
         //支付宝前端回调测试
         Route::get('payment/alipay/return', 'PaymentController@alipayReturn')->name('payment.alipay.return');
-
         //微信支付
         Route::get('payment/{order}/wechat', 'PaymentController@payByWechat')->name('payment.wechat');
 
+        //分期付款支付宝支付
+        Route::get('installments/{installment}/alipay', 'InstallmentsController@payByAlipay')->name('installments.alipay');
+        //分期付款支付宝前端回调
+        Route::get('installments/alipay/return', 'InstallmentsController@alipayReturn')->name('installments.alipay.return');
 
         //商品评价页面
         Route::get('orders/{order}/review', 'OrdersController@review')->name('orders.review.show');
@@ -128,6 +131,10 @@ Route::post('payment/alipay/notify', 'PaymentController@alipayNotify')->name('pa
 Route::post('payment/wechat/notify', 'PaymentController@wechatNotify')->name('payment.wechat.notify');
 //微信退款回调
 Route::post('payment/wechat/refund_notify', 'PaymentController@wechatRefundNotify')->name('payment.wechat.refund_notify');
+
+//分期付款支付宝后台回调
+Route::post('installments/alipay/notify', 'InstallmentsController@alipayNotify')->name('installments.alipay.notify');
+
 
 //测试sql语句
 Route::get('aaa', function () {
