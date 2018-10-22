@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Events\OrderPaid;
 use App\Exceptions\InvalidRequestException;
 use App\Models\Installment;
+use App\Models\InstallmentItem;
+use App\Models\Order;
 use Carbon\Carbon;
 use Endroid\QrCode\QrCode;
 use Illuminate\Http\Request;
@@ -133,6 +135,7 @@ class InstallmentsController extends Controller
     {
         //校验支付宝回调参数是否正确
         $data = app('alipay')->verify();
+       // \Log::debug($data->trade_no);
         if ($this->paid($data->out_trade_no, 'alipay', $data->trade_no)) {
             return app('alipay')->success();
         }
@@ -182,7 +185,7 @@ class InstallmentsController extends Controller
         $item->update([
             'paid_at' => Carbon::now(),
             'payment_method' => $paymentMethod,
-            'payment_to' => $paymentNo,
+            'payment_no' => $paymentNo,
         ]);
         //如果这是第一笔还款
         if ($item->sequence === 0) {
@@ -205,5 +208,46 @@ class InstallmentsController extends Controller
             $installment->update(['status' => Installment::STATUS_FINISHED]);
         }
         return true;
+    }
+
+    /**
+     * 微信退款回调
+     * @param Request $request
+     * @return string
+     */
+    public function wechatRefundNotify(Request $request)
+    {
+        //给微信的失败响应
+        $failXml = '<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[FAIL]]></return_msg></xml>';
+        //校验微信回调参数
+        $data = app('wechat_pay')->verify(null, true);
+        //根据单号拆分出对应的商品退款单号及对应的还款计划号
+        list($no, $sequence) = explode('_', $data['out_refund_no']);
+
+        $item = InstallmentItem::query()
+            ->whereHas('installment', function ($query) use ($no) {
+                $query->whereHas('order', function ($query) use ($no) {
+                    $query->where('refund_no', $no);//根据订单表的退款流水号找到对应还款计划
+                });
+            })->where('sequence', $sequence)->first();
+
+        //没有找到对应的订单，原则上不可能，为了代码健壮性
+        if (!$item) {
+            return $failXml;
+        }
+        //如果退款成功
+        if ($data['refund_status'] === 'SUCCESS') {
+            //将还款计划退款状态改成退款成功
+            $item->update([
+                'refund_status' => InstallmentItem::REFUND_STATUS_SUCCESS,
+            ]);
+            $item->installment->refreshRefundStatus();
+        } else {
+            //否则将对应还款计划的退款状态改为退款失败
+            $item->update([
+                'refund_status' => InstallmentItem::REFUND_STATUS_FAILED,
+            ]);
+        }
+        return app('wechat_pay')->success();
     }
 }

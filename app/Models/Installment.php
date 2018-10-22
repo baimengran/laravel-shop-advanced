@@ -82,4 +82,25 @@ class Installment extends Model
         \Log::warning(sprintf('find installment no failed'));
         return false;
     }
+
+    /**
+     * 分期付款还款计划是否全部退款成功
+     */
+    public function refreshRefundStatus()
+    {
+        $allSuccess = true;
+        //重新加载items，保证与数据库一致
+        $this->load(['items']);
+        foreach ($this->items as $item) {
+            if ($item->paid_at && $item->refund_status !== InstallmentItem::REFUND_STATUS_SUCCESS) {
+                $allSuccess = false;
+                break;
+            }
+        }
+        if ($allSuccess) {
+            $this->order->update([
+                'refund_status' => Order::REFUND_STATUS_SUCCESS,
+            ]);
+        }
+    }
 }

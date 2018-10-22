@@ -139,6 +139,11 @@ Route::post('installments/alipay/notify', 'InstallmentsController@alipayNotify')
 //分期付款微信后台回调
 Route::post('installments/wechat/notify', 'InstallmentsController@wechatNotify')->name('installments.wechat.notify');
 
+//微信退款回调
+Route::post('installments/wechat/refund_notify', 'InstallmentController@wechatRefundNotify')->name('installments.wechat.refund_notify');
+
+
+
 //测试sql语句
 Route::get('aaa', function () {
     $order = Order::find(15);
