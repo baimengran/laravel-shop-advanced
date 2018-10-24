@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Http\ViewComposers\CategoryTreeComposer;
 use Carbon\Carbon;
+use Elasticsearch\ClientBuilder;
 use Illuminate\Support\ServiceProvider;
 use Monolog\Logger;
 use Yansongda\Pay\Pay;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
             //测试路由
             //$config['notify_url'] = 'http://requestbin.fullcontact.com/150q8oh1';//取得服务器回调参数测试
             //$config['notify_url'] = route('payment.alipay.notify');//服务器回调
-            $config['notify_url']=ngrok_url('payment.alipay.notify');//服务器回调
+            $config['notify_url'] = ngrok_url('payment.alipay.notify');//服务器回调
             $config['return_url'] = route('payment.alipay.return');//前端回调
             //判断当前项目运行环境是否为线上环境
             //app()->environment() 获取当前运行的环境，线上环境会返回 production。
@@ -59,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
             $config = config('pay.wechat');
             //$config['notify_url'] = 'http://xxx';//微信支付取得服务器回调参数测试
             //$config['notify_url'] = route('payment.wechat.notify');
-            $config['notify_url']=ngrok_url('payment.wechat.notify');
+            $config['notify_url'] = ngrok_url('payment.wechat.notify');
             //判断当前项目是否运行咋线上环境
             if (app()->environment() !== 'production') {
                 $config['log']['level'] = Logger::DEBUG;
@@ -68,6 +70,19 @@ class AppServiceProvider extends ServiceProvider
             }
             //调用Yansongda\Pay来创建一个微信支付对象
             return Pay::wechat($config);
+        });
+
+        //注册一个名为 es 的单例
+        $this->app->singleton('es', function () {
+            //从配置文件读取Elasticsearch服务器列表
+            //return config('database.elasticsearch.hosts');
+            $builder = ClientBuilder::create()->setHosts(config('database.elasticsearch.hosts'));
+            //如果是开发环境
+            if (app()->environment() === 'local') {
+                //配置日志，Elasticsearch的请求和返回数据将打印到日志文件中，方便调试
+                $builder->setLogger(app('log')->getMonolog());
+            }
+            return $builder->build();
         });
     }
 }
