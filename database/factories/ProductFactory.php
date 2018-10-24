@@ -26,6 +26,7 @@ $factory->define(App\Models\Product::class, function (Faker $faker) {
         //如果数据库中没有类目。则$category为null,同样category_id也设成null
         'category_id' => $category ? $category->id : null,
         'title' => $faker->word,
+        'long_title' => $faker->sentence,
         'description' => $faker->sentence,
         'image' => $image,
         'on_sale' => true,
