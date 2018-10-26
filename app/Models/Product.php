@@ -87,4 +87,41 @@ class Product extends Model
                 return $properties->pluck('value')->all();
             });
     }
+
+    /**
+     * 取出elasticsearch需要的字段
+     * @return array
+     */
+    public function toESArray()
+    {
+        //只取出需要的字段
+        $arr = array_only($this->toArray(), [
+            'id',
+            'type',
+            'title',
+            'category_id',
+            'long_title',
+            'on_sale',
+            'rating',
+            'sold_count',
+            'review_count',
+            'price',
+        ]);
+
+        //如果商品有类目，则category字段为类目名数组，否则为空字符串
+        $arr['category'] = $this->category ? explode(' - ', $this->category->full_name) : '';
+        //类目的path
+        $arr['category_path'] = $this->category ? $this->category->path : '';
+        //strip_tags函数可以将html标签去除
+        $arr['description'] = strip_tags($this->description);
+        //只取出需要的SKU字段
+        $arr['skus'] = $this->skus->map(function (ProductSku $sku) {
+            return array_only($sku->toArray(), ['title', 'description', 'price']);
+        });
+        //只取出需要的商品属性字段
+        $arr['properties'] = $this->properties->map(function (ProductProperty $property) {
+            return array_only($property->toArray(), ['name', 'value']);
+        });
+        return $arr;
+    }
 }
