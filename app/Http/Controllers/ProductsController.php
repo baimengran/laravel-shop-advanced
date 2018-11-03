@@ -103,7 +103,6 @@ class ProductsController extends Controller
         if ($search = $request->input('search', '')) {
             //将搜索词根据空格拆分成数组，并过滤掉空项
             $keywords = array_filter(explode(' ', $search));
-//dd($keywords);
             $params['body']['query']['bool']['must'] = [];
             //遍历搜索词数组，分别添加到must查询中
             foreach ($keywords as $keyword) {
@@ -124,8 +123,76 @@ class ProductsController extends Controller
             }
         }
 
+        //用户搜索或类目筛选时使用elasticsearch聚合
+        if ($search || isset($category)) {
+            $params['body']['aggs'] = [
+                'properties' => [
+                    'nested' => [
+                        'path' => 'properties',
+                    ],
+                    'aggs' => [
+                        'properties' => [
+                            'terms' => [
+                                'field' => 'properties.name',
+                            ],
+                            'aggs' => [
+                                'value' => [
+                                    'terms' => [
+                                        'field' => 'properties.value',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        $propertyFilters = [];
+        //从用户请求参数中获取filters
+        if ($filterString = $request->input('filters')) {
+            //将获取到的字符串用符号 | 拆分成数组
+            $filterArray = explode('|', $filterString);
+            foreach ($filterArray as $filter) {
+                //将字符串用符号 ： 拆分成两部分并分别赋值给$name 和$value 两个变量
+                list($name, $value) = explode(':', $filter);
+                //将筛选的属性添加到数组中
+                $propertyFilters[$name] = $value;
+                //添加到filter类型中
+                $params['body']['query']['bool']['filter'][] = [
+                    //筛选nested类型下的属性，
+                    'nested' => [
+                        //指明nested字段
+                        'path' => 'properties',
+                        'query' => [
+                            ['term' => ['properties.name' => $name]],
+                            ['term' => ['properties.value' => $value]],
+                        ],
+                    ],
+                ];
+            }
+        }
+
         //服务提供者创建elasticsearch查询对象
         $result = app('es')->search($params);
+
+        $properties = [];
+        //如果返回结果里有aggregations字段，说明做了分面搜索
+        if (isset($result['aggregations'])) {
+            //使用collect函数将返回值转为集合
+            $properties = collect($result['aggregations']['properties']['properties']['buckets'])
+                ->map(function ($bucket) {
+                    //通过map方法取出需要的字段
+                    return [
+                        'key' => $bucket['key'],
+                        'values' => collect($bucket['value']['buckets'])->pluck('key')->all(),
+                    ];
+                })
+                ->filter(function ($property) use ($propertyFilters) {
+                    //过滤掉只剩一个值或已经在筛选条件里的属性
+                    return count($property['values']) > 1 && !isset($propertyFilters['key']);
+                });
+        }
 
         //通过collect函数将返回的结果转为集合，并通过集合的pluck方法取到返回的商品ID数组
         $productIds = collect($result['hits']['hits'])->pluck('_id')->all();
@@ -148,6 +215,8 @@ class ProductsController extends Controller
                 'order' => $order
             ],
             'category' => $category ?? null,
+            'properties' => $properties,
+            'propertyFilters'=>$propertyFilters,
         ]);
     }
 
