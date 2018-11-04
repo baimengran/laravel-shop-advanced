@@ -6,6 +6,7 @@ use App\Exceptions\InvalidRequestException;
 use App\Models\Category;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\SearchBuilders\ProductSearchBuilder;
 use App\Services\CategoryService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -22,23 +23,52 @@ class ProductsController extends Controller
 
         $page = $request->input('page', 1);
         $perPage = 16;
-        //构建查询
-        $params = [
-            'index' => 'products',
-            'type' => '_doc',
-            'body' => [
-                'from' => ($page - 1) * $perPage,//通过当前页数与每页数量计算偏移量
-                'size' => $perPage,
-                'query' => [
-                    'bool' => [
-                        'filter' => [
-                            ['term' => ['on_sale' => true]],
-                        ],
-                    ],
-                ],
-            ],
-        ];
+        //创建查询构造器对象，设置只搜索上架商品，设置分页
+        $builder = (new ProductSearchBuilder())->onSale()->paginate($perPage, $page);
 
+        if ($request->input('category_id') && $category = Category::query()->find($request
+                ->input('category_id'))) {
+            //调用查询构造器的类目筛选
+            $builder->category($category);
+        }
+
+        if ($search = $request->input('search', '')) {
+            $keywords = array_filter(explode(' ', $search));
+            //调用查询构造器的关键字筛选
+            $builder->keywords($keywords);
+        }
+
+        if ($search || isset($cateogry)) {
+            //调用查询构造器的分面搜索
+            $builder->aggregateProperties();
+        }
+
+        $propertyFilters = [];
+        //从用户请求参数中获取filters
+        if ($filterString = $request->input('filters')) {
+            //将获取到的字符串用符号 | 拆分成数组
+            $filterArray = explode('|', $filterString);
+            foreach ($filterArray as $filter) {
+                //将字符串用符号 ： 拆分成两部分并分别赋值给$name 和$value 两个变量
+                list($name, $value) = explode(':', $filter);
+                //将筛选的属性添加到数组中
+                $propertyFilters[$name] = $value;
+                //调用查询构造器的属性筛选
+                $builder->propertyFilter($name, $value);
+            }
+        }
+
+        //order参数会用来控制商品排序规则
+        if ($order = $request->input('order', '')) {
+            //是否以_asc或_desc结尾
+            if (preg_match('/^(.+)_(asc|desc)$/', $order, $m)) {
+                //如果字符串的开头是这三个字符串之一，说明是合法的排序值
+                if (in_array($m[1], ['price', 'sold_count', 'rating'])) {
+                    //根据传入的排序值调用查询构造器的排序
+                    $builder->orderBy($m[1], $m[2]);
+                }
+            }
+        }
 
 //        //创建查询构建器
 //        $builder = Product::query()->where('on_sale', true);
@@ -71,109 +101,9 @@ class ProductsController extends Controller
 //            }
 //        }
 
-        //是否提交order参数，如果有就赋值给$order变量
-        //order参数会用来控制商品排序规则
-        if ($order = $request->input('order', '')) {
-            //是否以_asc或_desc结尾
-            if (preg_match('/^(.+)_(asc|desc)$/', $order, $m)) {
-                //如果字符串的开头是这三个字符串之一，说明是合法的排序值
-                if (in_array($m[1], ['price', 'sold_count', 'rating'])) {
-                    //根据传入的排序值来构造排序参数
-                    $params['body']['sort'] = [[$m[1] => $m[2]]];
-                }
-            }
-        }
-
-        //按类目搜索
-        if ($request->input('category_id') && $category = Category::query()->find($request->input('category_id'))) {
-            if ($category->is_directory) {
-                //如果是一个父类目，则使用category_path来筛选
-                $params['body']['query']['bool']['filter'][] = [
-                    'prefix' => ['category_path' => $category->path . $category->id . '-'],
-                ];
-            } else {
-                //否则直接通过category_id筛选
-                $params['body']['query']['bool']['filter'][] = [
-                    'term' => ['category_id' => $category->id],
-                ];
-            }
-        }
-
-        //关键字搜索
-        if ($search = $request->input('search', '')) {
-            //将搜索词根据空格拆分成数组，并过滤掉空项
-            $keywords = array_filter(explode(' ', $search));
-            $params['body']['query']['bool']['must'] = [];
-            //遍历搜索词数组，分别添加到must查询中
-            foreach ($keywords as $keyword) {
-                $params['body']['query']['bool']['must'][] = [
-                    'multi_match' => [
-                        'query' => $keyword,
-                        'fields' => [
-                            'title^2',
-                            'long_title^2',
-                            'category^2',//类目名称
-                            'description',
-                            'skus_title',
-                            'skus_description',
-                            'properties_value',//标签
-                        ],
-                    ],
-                ];
-            }
-        }
-
-        //用户搜索或类目筛选时使用elasticsearch聚合
-        if ($search || isset($category)) {
-            $params['body']['aggs'] = [
-                'properties' => [
-                    'nested' => [
-                        'path' => 'properties',
-                    ],
-                    'aggs' => [
-                        'properties' => [
-                            'terms' => [
-                                'field' => 'properties.name',
-                            ],
-                            'aggs' => [
-                                'value' => [
-                                    'terms' => [
-                                        'field' => 'properties.value',
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ];
-        }
-
-        $propertyFilters = [];
-        //从用户请求参数中获取filters
-        if ($filterString = $request->input('filters')) {
-            //将获取到的字符串用符号 | 拆分成数组
-            $filterArray = explode('|', $filterString);
-            foreach ($filterArray as $filter) {
-                //将字符串用符号 ： 拆分成两部分并分别赋值给$name 和$value 两个变量
-                list($name, $value) = explode(':', $filter);
-                //将筛选的属性添加到数组中
-                $propertyFilters[$name] = $value;
-                //添加到filter类型中
-                $params['body']['query']['bool']['filter'][] = [
-                    //筛选nested类型下的属性，
-                    'nested' => [
-                        //指明nested字段
-                        'path' => 'properties',
-                        'query' => [
-                            ['term' => ['properties.search_value' => $filter]],
-                        ],
-                    ],
-                ];
-            }
-        }
 
         //服务提供者创建elasticsearch查询对象
-        $result = app('es')->search($params);
+        $result = app('es')->search($builder->getParams());
 
         $properties = [];
         //如果返回结果里有aggregations字段，说明做了分面搜索
