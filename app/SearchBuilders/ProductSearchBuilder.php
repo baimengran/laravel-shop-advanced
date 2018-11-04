@@ -27,6 +27,8 @@ class ProductSearchBuilder
         ],
     ];
 
+
+
     /**
      * 分页查询
      * @param $size 每页数量
@@ -129,11 +131,12 @@ class ProductSearchBuilder
      * 按商品属性筛选
      * @param $name 属性名
      * @param $value 属性值
+     * @param $type 查询方式
      * @return $this
      */
-    public function propertyFilter($name, $value)
+    public function propertyFilter($name, $value, $type = 'filter')
     {
-        $this->params['body']['query']['bool']['filter'][] = [
+        $this->params['body']['query']['bool'][$type][] = [
             'nested' => [
                 'path' => 'properties',
                 'query' => [
@@ -147,12 +150,23 @@ class ProductSearchBuilder
     }
 
     /**
+     * 设置minimum_should_match参数
+     * @param $count
+     * @return $this
+     */
+    public function minShouldMatch($count)
+    {
+        $this->params['body']['query']['bool']['minimum_should_match'] = (int)$count;
+        return $this;
+    }
+
+    /**
      * 排序
      * @param $field 字段
      * @param $direction 排序方式
      * @return $this
      */
-    public function orderBy($field, $direction)
+    public function orderBy($field = 'id', $direction = 'desc')
     {
         if (!isset($this->params['body']['sort'])) {
             $this->params['body']['sort'] = [];

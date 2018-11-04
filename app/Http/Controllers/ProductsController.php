@@ -8,6 +8,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\SearchBuilders\ProductSearchBuilder;
 use App\Services\CategoryService;
+use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -59,16 +60,21 @@ class ProductsController extends Controller
         }
 
         //order参数会用来控制商品排序规则
-        if ($order = $request->input('order', '')) {
-            //是否以_asc或_desc结尾
-            if (preg_match('/^(.+)_(asc|desc)$/', $order, $m)) {
-                //如果字符串的开头是这三个字符串之一，说明是合法的排序值
-                if (in_array($m[1], ['price', 'sold_count', 'rating'])) {
-                    //根据传入的排序值调用查询构造器的排序
-                    $builder->orderBy($m[1], $m[2]);
-                }
+        $order = $request->input('order', '');
+        //dd($order);
+        if (!$order) {
+            //dd($order);
+            $builder->orderBy();
+        }
+        //是否以_asc或_desc结尾
+        if (preg_match('/^(.+)_(asc|desc)$/', $order, $m)) {
+            //如果字符串的开头是这三个字符串之一，说明是合法的排序值
+            if (in_array($m[1], ['price', 'sold_count', 'rating'])) {
+                //根据传入的排序值调用查询构造器的排序
+                $builder->orderBy($m[1], $m[2]);
             }
         }
+
 
 //        //创建查询构建器
 //        $builder = Product::query()->where('on_sale', true);
@@ -126,12 +132,8 @@ class ProductsController extends Controller
         //通过collect函数将返回的结果转为集合，并通过集合的pluck方法取到返回的商品ID数组
         $productIds = collect($result['hits']['hits'])->pluck('_id')->all();
         //通过whereIn方法从数据库中读取商品数据
-        $products = Product::query()
-            ->whereIn('id', $productIds)
-            //使用Mysql的FIND_IN_SET方法
-            //orderByRaw可以使用原生的SQL查询
-            ->orderByRaw(sprintf("FIND_IN_SET(id,'%s')", join(',', $productIds)))
-            ->get();
+        //dd($productIds);
+        $products = Product::query()->byIds($productIds)->get();
         //返回一个LengthAwarePaginator对象
         $pager = new LengthAwarePaginator($products, $result['hits']['total'], $perPage, $page, [
             'path' => route('products.index', false),//手动构建分页url
@@ -156,7 +158,7 @@ class ProductsController extends Controller
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      * @throws InvalidRequestException
      */
-    public function show(Product $product, Request $request)
+    public function show(Product $product, Request $request, ProductService $service)
     {
         //判断商品是否已经上架，如果没上架抛出异常
         if (!$product->on_sale) {
@@ -177,10 +179,17 @@ class ProductsController extends Controller
         ->orderBy('reviewed_at', 'desc')//按评价时间倒序
         ->limit(10)//取出10条
         ->get();
+
+
+        //根据 Elasticsearch搜索出来的商品ID从数据库中读取商品数据
+        $similarProductIds = $service->getSimilarProductIds($product, 4);
+        $similarProducts = Product::query()->byIds($similarProductIds)->get();
+
         return view('products.show', [
             'product' => $product,
             'favored' => $favored,
             'reviews' => $reviews,
+            'similar' => $similarProducts,
         ]);
     }
 

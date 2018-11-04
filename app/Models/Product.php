@@ -127,4 +127,17 @@ class Product extends Model
         });
         return $arr;
     }
+
+    /**
+     * 根据Elasticsearch查询的id数组，查询数据库商品
+     * @param $query 商品对象
+     * @param $ids id数组
+     * @return mixed
+     */
+    public function scopeByIds($query, $ids)
+    {
+        return $query->whereIn('id', $ids)
+            ->orderByRaw(sprintf("FIND_IN_SET(id,'%s')", join(',', $ids)));
+    }
+
 }
