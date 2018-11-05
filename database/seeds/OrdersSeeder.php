@@ -34,7 +34,7 @@ class OrdersSeeder extends Seeder
             });
             //如果有优惠卷，则计算优惠后价格
             if($order->couponCode){
-                $total = $order->couponCode->getAdjustedrice($total);
+                $total = $order->couponCode->getAdjustedPrice($total);
             }
             //更新订单总价
             $order->update(['total_amount'=>$total]);
