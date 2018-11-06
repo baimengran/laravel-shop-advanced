@@ -113,13 +113,13 @@ Route::group(['middleware' => 'auth'], function () {
     });
 
     //支付宝沙箱支付测试
-    Route::get('alipay', function () {
-        return app('alipay')->web([
-            'out_trade_no' => time(),
-            'total_amount' => '1',
-            'subject' => 'test subject -测试'
-        ]);
-    });
+//    Route::get('alipay', function () {
+//        return app('alipay')->web([
+//            'out_trade_no' => time(),
+//            'total_amount' => '1',
+//            'subject' => 'test subject -测试'
+//        ]);
+//    });
 
 });
 //商品详情页面
