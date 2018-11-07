@@ -7,6 +7,7 @@ use App\Notifications\EmailVerificationNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use App\Exceptions\InvalidRequestException;
+use Illuminate\Support\Facades\Mail;
 
 class EmailVerificationController extends Controller
 {
@@ -61,7 +62,8 @@ class EmailVerificationController extends Controller
         }
 
         //调用notify()方法用来发送我们定义好的通知类
-        $user->notify(new EmailVerificationNotification());
+        //$user->notify(new EmailVerificationNotification());
+        Mail::to($user->notify(new EmailVerificationNotification()));
         return view('pages.success', ['msg' => '邮件发送成功']);
     }
 
