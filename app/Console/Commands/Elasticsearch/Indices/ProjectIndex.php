@@ -29,6 +29,7 @@ class ProjectIndex
         return [
             'type' => ['type' => 'keyword'],
             'title' => ['type' => 'text', 'analyzer' => 'ik_smart', 'search_analyzer' => 'ik_smart_synonym'],
+            'id'=>['type'=>'long'],
             'long_title' => ['type' => 'text', 'analyzer' => 'ik_smart', 'search_analyzer' => 'ik_smart_synonym'],
             'category_id' => ['type' => 'integer'],
             'category' => ['type' => 'keyword'],
