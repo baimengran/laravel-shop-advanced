@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','验证成功')
+@section('title','操作成功')
 
 @section('content')
     <div class="panel panel-default">

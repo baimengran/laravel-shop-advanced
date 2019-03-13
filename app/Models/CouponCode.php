@@ -71,7 +71,7 @@ class CouponCode extends Model
     }
 
     /**
-     * 校验优惠卷信息
+     * 校验优惠卷是否可用
      * @param User $user
      * @param null $orderAmount
      * @throws CouponCodeUnavailableException

@@ -1,5 +1,11 @@
 <?php
-
+/**
+ * 购物车控制器
+ *
+ * @author bai (13466320356@163.com)
+ * @version 1.0
+ * @package App.Http.Controllers
+ */
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AddCartRequest;
@@ -8,9 +14,18 @@ use App\Models\ProductSku;
 use App\Services\CartService;
 use Illuminate\Http\Request;
 
+/**
+ * 购物车控制器
+ *
+ * 购物车相关功能控制器，包括购物车列表、添加和删除
+ * @package App\Http\Controllers
+ */
 class CartController extends Controller
 {
-
+    /**
+     *
+     * @var CartService
+     */
     protected $cartService;
 
     //利用laravel自动解析功能注入CartService

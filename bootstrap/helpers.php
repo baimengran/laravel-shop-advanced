@@ -1,9 +1,13 @@
 <?php
 /**
+ * 辅助函数文件
  *
- * @authors Your Name (you@example.org)
+ * 此辅助函数文件包含各类辅助函数，以提供程序扩展功能
+ *
+ * @authors bai (13466320356@163.com)
  * @date    2018-09-14 13:55:43
- * @version $Id$
+ * @version 1.0
+ * @package bootstrap
  */
 
 use Moontoast\Math\BigNumber;
