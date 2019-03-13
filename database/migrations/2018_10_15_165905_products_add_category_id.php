@@ -29,6 +29,9 @@ class ProductsAddCategoryId extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             //
+            $table->dropForeign('products_categories_foreign');
+            $table->dropColumn('category_id');
+
         });
     }
 }
